@@ -4,12 +4,16 @@ import sqlite3
 from datetime import datetime
 import time
 import threading
+import os
 
 # Import our advanced data structures
 from data_structures import health_aggregator, HealthRecord, Doctor, Severity
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+# Railway-specific configuration
+PORT = int(os.environ.get('PORT', 5000))
 
 # SQLite database file path
 DATABASE = 'phr_database.db'
@@ -47,6 +51,16 @@ def execute_write(fn, retries=5, base_delay=0.15):
                 time.sleep(base_delay * (attempt + 1))
                 continue
             raise
+
+# Health check endpoint for Railway
+@app.route('/', methods=['GET'])
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'message': 'LifeTrack Backend is running',
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/doctors', methods=['GET'])
 def get_doctors():
@@ -362,4 +376,4 @@ def delete_doctor(doctor_id):
         return jsonify({'success': False,'message': f'Error deleting doctor: {str(e)}'}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
