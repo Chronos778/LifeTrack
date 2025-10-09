@@ -196,15 +196,17 @@ For detailed mobile build instructions, see `MOBILE_BUILD_INSTRUCTIONS.md`.
 - `PUT /api/treatments/:id` - Update treatment
 - `DELETE /api/treatments/:id` - Delete treatment
 
-## 🚀 Deployment
+## 🚀 Local Development
 
-### Railway (Recommended)
-1. Connect your GitHub repository to Railway
-2. Set environment variables
-3. Deploy automatically
+This application is configured to run on localhost:
 
-### Manual Deployment
-See `DEPLOYMENT.md` for detailed deployment instructions.
+### Backend
+- Runs on `http://localhost:5000`
+- SQLite database stored locally
+
+### Frontend
+- Runs on `http://localhost:3000`
+- Automatically connects to local backend
 
 ## 🤝 Contributing
 

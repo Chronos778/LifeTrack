@@ -20,13 +20,22 @@ const Home = ({ user, onLogout }) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('🔄 Starting data fetch for user:', user.user_id);
       try {
+        console.log('📡 Making API calls...');
         const [userRecords, userTreatments, visitedDoctors, allDoctorsData] = await Promise.all([
           apiService.getUserHealthRecords(user.user_id),
           apiService.getUserTreatments(user.user_id),
           apiService.getDoctorsVisitedByUser(user.user_id),
           apiService.getDoctors()
         ]);
+
+        console.log('📊 Data received:', {
+          userRecords: userRecords.length,
+          userTreatments: userTreatments.length,
+          visitedDoctors: visitedDoctors.length,
+          allDoctors: allDoctorsData.length
+        });
 
         setStats({
           visitedDoctors: visitedDoctors.length,
@@ -39,8 +48,9 @@ const Home = ({ user, onLogout }) => {
         setDoctors(visitedDoctors);
         setAllDoctors(allDoctorsData);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('❌ Error fetching dashboard data:', error);
       } finally {
+        console.log('✅ Data fetch completed');
         setLoading(false);
       }
     };

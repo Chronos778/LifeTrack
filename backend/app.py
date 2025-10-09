@@ -12,8 +12,8 @@ from data_structures import health_aggregator, HealthRecord, Doctor, Severity
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Railway-specific configuration
-PORT = int(os.environ.get('PORT', 5000))
+# Localhost configuration
+PORT = 5000
 
 # SQLite database file path
 DATABASE = 'phr_database.db'
@@ -52,7 +52,7 @@ def execute_write(fn, retries=5, base_delay=0.15):
                 continue
             raise
 
-# Health check endpoint for Railway
+# Health check endpoint
 @app.route('/', methods=['GET'])
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -376,4 +376,5 @@ def delete_doctor(doctor_id):
         return jsonify({'success': False,'message': f'Error deleting doctor: {str(e)}'}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+    # Run on localhost only
+    app.run(host='127.0.0.1', port=PORT, debug=True)

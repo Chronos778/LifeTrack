@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 // Environment-based API configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://lifetrackbackend-production.up.railway.app'
-  : process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Force localhost for development - use environment variable to override
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 console.log('API Base URL:', API_BASE_URL);
+console.log('Environment:', process.env.NODE_ENV);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -15,15 +15,29 @@ const api = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
+// Test connection on startup
+api.get('/')
+  .then(response => console.log('✅ Backend connection successful:', response.data))
+  .catch(error => console.error('❌ Backend connection failed:', error.message));
+
 // Add response interceptor for better error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ API Success:', {
+      url: response.config?.url,
+      method: response.config?.method,
+      status: response.status,
+      dataLength: response.data?.length || 'N/A'
+    });
+    return response;
+  },
   (error) => {
-    console.error('API Error:', {
+    console.error('❌ API Error:', {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
-      message: error.message
+      message: error.message,
+      baseURL: error.config?.baseURL
     });
     return Promise.reject(error);
   }
@@ -174,17 +188,24 @@ export const apiService = {
   // Login function - validates user credentials
   login: async (email, password) => {
     try {
-      const users = await api.get('/users');
-      const user = users.data.find(u => u.email === email && u.password === password);
+      console.log('🔐 Login attempt:', { email, password: '***' });
+      const response = await api.get('/users');
+      console.log('✅ Got users response:', response.data);
+      
+      const user = response.data.find(u => u.email === email && u.password === password);
+      console.log('🔍 User found:', user ? 'YES' : 'NO');
       
       if (user) {
         // Don't send password back to frontend
         const { password: _, ...userWithoutPassword } = user;
+        console.log('✅ Login successful for:', user.email);
         return userWithoutPassword;
       } else {
+        console.error('❌ Invalid credentials');
         throw new Error('Invalid email or password');
       }
     } catch (error) {
+      console.error('❌ Login error:', error);
       if (error.message === 'Invalid email or password') {
         throw error;
       }
