@@ -439,26 +439,77 @@ def get_health_insights(user_id):
                 }
             }), 200
         
-        # Prepare data for AI analysis
+        # Prepare data for AI analysis with enhanced prompt
+        
+        # Get most recent records
+        recent_records = records[:15] if len(records) > 15 else records
+        recent_treatments = treatments[:15] if len(treatments) > 15 else treatments
+        
+        # Extract unique diagnoses
+        unique_diagnoses = list(set([r['diagnosis'] for r in records]))
+        
+        # Calculate time span
+        if records:
+            oldest_date = min([r['record_date'] for r in records if r['record_date']])
+            newest_date = max([r['record_date'] for r in records if r['record_date']])
+            time_span = f"from {oldest_date} to {newest_date}"
+        else:
+            time_span = "recent period"
+        
         health_summary = f"""
-        Analyze this patient's health data and provide insights:
-        
-        HEALTH RECORDS ({len(records)} total):
-        {chr(10).join([f"- {r['record_date']}: {r['diagnosis']} (Dr. {r['doctor_name']}, {r['specialization']})" for r in records[:10]])}
-        
-        TREATMENTS ({len(treatments)} total):
-        {chr(10).join([f"- {t['medication']} for {t['diagnosis']}" + (f" (Follow-up: {t['follow_up_date']})" if t.get('follow_up_date') else "") for t in treatments[:10]])}
-        
-        DOCTORS VISITED ({len(doctors)} total):
-        {chr(10).join([f"- Dr. {d['name']} ({d['specialization']})" for d in doctors])}
-        
-        Provide:
-        1. A brief summary (2-3 sentences)
-        2. 3-5 health trends or patterns you notice
-        3. 3-5 personalized recommendations
-        
-        Format as JSON with keys: summary, trends (array), recommendations (array)
-        Be encouraging, professional, and focus on actionable insights.
+You are a healthcare analytics AI assistant. Analyze this patient's medical history and provide actionable health insights.
+
+PATIENT HEALTH PROFILE:
+- Total Health Records: {len(records)}
+- Active Treatments: {len(treatments)}
+- Healthcare Providers: {len(doctors)} specialists
+- Time Period: {time_span}
+- Unique Conditions: {len(unique_diagnoses)}
+
+DETAILED HEALTH RECORDS (Most Recent):
+{chr(10).join([f"• {r['record_date']}: {r['diagnosis']} → Treated by Dr. {r['doctor_name']} ({r['specialization']})" for r in recent_records])}
+
+CURRENT/RECENT TREATMENTS:
+{chr(10).join([f"• {t['medication']} - {t['diagnosis']}" + (f" | Next follow-up: {t['follow_up_date']}" if t.get('follow_up_date') else " | Completed") for t in recent_treatments])}
+
+SPECIALIST CONSULTATIONS:
+{chr(10).join([f"• Dr. {d['name']} - {d['specialization']}" for d in doctors])}
+
+UNIQUE CONDITIONS DIAGNOSED:
+{chr(10).join([f"• {diagnosis}" for diagnosis in unique_diagnoses[:10]])}
+
+ANALYSIS REQUIRED:
+Provide a comprehensive health analysis in JSON format with these exact keys:
+
+1. "summary" (string): A 3-4 sentence overview highlighting the patient's main health concerns, chronic conditions being managed, and overall health trajectory.
+
+2. "trends" (array of 5 strings): Identify specific patterns such as:
+   - Recurring conditions (seasonal patterns, chronic disease progression)
+   - Frequency of specialist visits (which specialists, why)
+   - Medication adherence indicators
+   - Related conditions (comorbidities, risk factors)
+   - Time-based patterns (months with more visits, seasonal issues)
+
+3. "recommendations" (array of 5 strings): Provide specific, actionable advice:
+   - Preventive care steps based on diagnosed conditions
+   - Lifestyle modifications for chronic conditions
+   - Tests or screenings due based on history
+   - Medication management tips
+   - When to schedule follow-ups or see specialists
+
+IMPORTANT:
+- Be specific and reference actual diagnoses/treatments
+- Focus on practical, actionable insights
+- Highlight any concerning patterns requiring attention
+- Be encouraging but realistic
+- Use medical terminology appropriately but explain clearly
+
+Output ONLY valid JSON in this exact format:
+{{
+  "summary": "string",
+  "trends": ["string1", "string2", "string3", "string4", "string5"],
+  "recommendations": ["string1", "string2", "string3", "string4", "string5"]
+}}
         """
         
         # Generate insights using Gemini AI v1beta API - try multiple models
@@ -495,29 +546,45 @@ def get_health_insights(user_id):
         response_data = gemini_response.json()
         ai_text = response_data['candidates'][0]['content']['parts'][0]['text']
         
-        # Try to extract JSON from response, or create structured response
+        # Try to extract JSON from response
         import json
         import re
         
+        app.logger.info(f"AI Response: {ai_text[:200]}...")  # Log first 200 chars for debugging
+        
+        # Clean up markdown code blocks if present
+        ai_text_cleaned = re.sub(r'```json\s*|\s*```', '', ai_text)
+        
         # Look for JSON in the response
-        json_match = re.search(r'\{.*\}', ai_text, re.DOTALL)
+        json_match = re.search(r'\{[^{}]*"summary"[^{}]*"trends"[^{}]*"recommendations"[^{}]*\}', ai_text_cleaned, re.DOTALL)
+        
         if json_match:
             try:
                 ai_insights = json.loads(json_match.group())
-            except:
-                # If JSON parsing fails, create structured response from text
+                # Ensure we have all required fields
+                if not all(key in ai_insights for key in ['summary', 'trends', 'recommendations']):
+                    raise ValueError("Missing required fields")
+                # Ensure trends and recommendations are lists with at least some items
+                if not isinstance(ai_insights['trends'], list) or len(ai_insights['trends']) == 0:
+                    ai_insights['trends'] = ['Health data analysis in progress']
+                if not isinstance(ai_insights['recommendations'], list) or len(ai_insights['recommendations']) == 0:
+                    ai_insights['recommendations'] = ['Continue regular health monitoring']
+            except Exception as e:
+                app.logger.warning(f"JSON parsing failed: {e}, attempting fallback parsing")
+                # Fallback: Try to parse structured text
                 ai_insights = {
-                    'summary': ai_text[:300],
-                    'trends': ['Pattern analysis based on your records'],
-                    'recommendations': ['Continue tracking your health data']
+                    'summary': ai_text[:400] if len(ai_text) > 400 else ai_text,
+                    'trends': ['Analyzing your health patterns...'],
+                    'recommendations': ['Keep maintaining your health records']
                 }
         else:
-            # Parse text response into structured format
-            lines = ai_text.split('\n')
+            app.logger.warning("No JSON found in AI response, using fallback")
+            # Smart fallback - try to extract meaningful content
+            lines = [line.strip() for line in ai_text.split('\n') if line.strip()]
             ai_insights = {
                 'summary': lines[0] if lines else 'Health data analysis complete.',
-                'trends': [line.strip('- ').strip() for line in lines if line.strip().startswith('-')][:5] or ['Regular health monitoring detected'],
-                'recommendations': [line.strip('- ').strip() for line in lines if line.strip().startswith('-')][5:10] or ['Keep updating your health records']
+                'trends': [line.lstrip('•-*123456789. ') for line in lines[1:6] if line] or ['Regular health monitoring detected'],
+                'recommendations': [line.lstrip('•-*123456789. ') for line in lines[6:11] if line] or ['Keep updating your health records']
             }
         
         # Add statistics

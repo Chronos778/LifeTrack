@@ -258,3 +258,15 @@ local.properties
 
 # Deployment files
 Procfile.local
+
+# Presentation and temporary files
+PRESENTATION_*.md
+FILE_STRUCTURE_GUIDE.md
+AI_INSIGHTS_GUIDE.md
+TECHNICAL_DEEP_DIVE.md
+*_CHEATSHEET.md
+
+# Test data files
+backend/add_test_data.sql
+backend/test_*.py
+test-*.js
