@@ -281,10 +281,19 @@ export const apiService = {
   // AI Health Insights
   getHealthInsights: async (userId) => {
     try {
-      const response = await api.get(`/api/health-insights/${userId}`);
+      console.log('Fetching AI insights for user:', userId);
+      const response = await api.get(`/api/health-insights/${userId}`, {
+        timeout: 60000  // 60 seconds for AI processing
+      });
+      console.log('AI insights response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching health insights:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw new Error(error.response?.data?.message || 'Failed to fetch health insights');
     }
   }
