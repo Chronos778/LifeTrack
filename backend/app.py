@@ -5,9 +5,20 @@ from datetime import datetime
 import time
 import threading
 import os
+import requests
+import json
 
 # Import our advanced data structures
 from data_structures import health_aggregator, HealthRecord, Doctor, Severity
+
+# Configure Gemini AI
+GEMINI_API_KEY = "AIzaSyB-rgGfF6tPBIYRlPSVQPcl35tbieQNvOI"
+# Use the actual available models from the API
+GEMINI_MODELS = [
+    "gemini-2.5-flash",  # Stable version, fast
+    "gemini-2.0-flash",  # Alternative stable version
+    "gemini-2.5-pro"     # Most capable but slower
+]
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -374,6 +385,171 @@ def delete_doctor(doctor_id):
         }), 200
     except Exception as e:
         return jsonify({'success': False,'message': f'Error deleting doctor: {str(e)}'}), 400
+
+# ============== AI HEALTH INSIGHTS ENDPOINT ==============
+@app.route('/api/health-insights/<int:user_id>', methods=['GET'])
+def get_health_insights(user_id):
+    """Generate personalized health insights using Gemini AI"""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Fetch user's health records
+            cursor.execute("""
+                SELECT hr.*, d.name as doctor_name, d.specialization 
+                FROM health_records hr
+                LEFT JOIN doctors d ON hr.doctor_id = d.doctor_id
+                WHERE hr.user_id = ?
+                ORDER BY hr.record_date DESC
+            """, (user_id,))
+            records = [dict(row) for row in cursor.fetchall()]
+            
+            # Fetch user's treatments
+            cursor.execute("""
+                SELECT t.*, hr.diagnosis 
+                FROM treatment t
+                LEFT JOIN health_records hr ON t.record_id = hr.record_id
+                WHERE hr.user_id = ?
+                ORDER BY t.treatment_id DESC
+            """, (user_id,))
+            treatments = [dict(row) for row in cursor.fetchall()]
+            
+            # Fetch visited doctors
+            cursor.execute("""
+                SELECT DISTINCT d.* 
+                FROM doctors d
+                INNER JOIN health_records hr ON d.doctor_id = hr.doctor_id
+                WHERE hr.user_id = ?
+            """, (user_id,))
+            doctors = [dict(row) for row in cursor.fetchall()]
+        
+        # If no data, return default insights
+        if not records and not treatments:
+            return jsonify({
+                'success': True,
+                'insights': {
+                    'summary': 'Welcome to LifeTrack! Start by adding your first health record to receive personalized insights.',
+                    'trends': [],
+                    'recommendations': ['Add your first doctor visit', 'Record any ongoing treatments', 'Upload medical documents'],
+                    'statistics': {
+                        'total_records': 0,
+                        'total_doctors': 0,
+                        'total_treatments': 0
+                    }
+                }
+            }), 200
+        
+        # Prepare data for AI analysis
+        health_summary = f"""
+        Analyze this patient's health data and provide insights:
+        
+        HEALTH RECORDS ({len(records)} total):
+        {chr(10).join([f"- {r['record_date']}: {r['diagnosis']} (Dr. {r['doctor_name']}, {r['specialization']})" for r in records[:10]])}
+        
+        TREATMENTS ({len(treatments)} total):
+        {chr(10).join([f"- {t['medication']} for {t['diagnosis']}" + (f" (Follow-up: {t['follow_up_date']})" if t.get('follow_up_date') else "") for t in treatments[:10]])}
+        
+        DOCTORS VISITED ({len(doctors)} total):
+        {chr(10).join([f"- Dr. {d['name']} ({d['specialization']})" for d in doctors])}
+        
+        Provide:
+        1. A brief summary (2-3 sentences)
+        2. 3-5 health trends or patterns you notice
+        3. 3-5 personalized recommendations
+        
+        Format as JSON with keys: summary, trends (array), recommendations (array)
+        Be encouraging, professional, and focus on actionable insights.
+        """
+        
+        # Generate insights using Gemini AI v1beta API - try multiple models
+        headers = {'Content-Type': 'application/json'}
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": health_summary
+                }]
+            }]
+        }
+        
+        gemini_response = None
+        last_error = None
+        
+        # Try each model until one works
+        for model_name in GEMINI_MODELS:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+                gemini_response = requests.post(url, headers=headers, json=payload, timeout=30)
+                
+                if gemini_response.status_code == 200:
+                    break  # Success! Use this model
+                else:
+                    last_error = gemini_response.text
+            except Exception as e:
+                last_error = str(e)
+                continue
+        
+        if not gemini_response or gemini_response.status_code != 200:
+            raise Exception(f"All Gemini models failed. Last error: {last_error}")
+        
+        # Parse AI response
+        response_data = gemini_response.json()
+        ai_text = response_data['candidates'][0]['content']['parts'][0]['text']
+        
+        # Try to extract JSON from response, or create structured response
+        import json
+        import re
+        
+        # Look for JSON in the response
+        json_match = re.search(r'\{.*\}', ai_text, re.DOTALL)
+        if json_match:
+            try:
+                ai_insights = json.loads(json_match.group())
+            except:
+                # If JSON parsing fails, create structured response from text
+                ai_insights = {
+                    'summary': ai_text[:300],
+                    'trends': ['Pattern analysis based on your records'],
+                    'recommendations': ['Continue tracking your health data']
+                }
+        else:
+            # Parse text response into structured format
+            lines = ai_text.split('\n')
+            ai_insights = {
+                'summary': lines[0] if lines else 'Health data analysis complete.',
+                'trends': [line.strip('- ').strip() for line in lines if line.strip().startswith('-')][:5] or ['Regular health monitoring detected'],
+                'recommendations': [line.strip('- ').strip() for line in lines if line.strip().startswith('-')][5:10] or ['Keep updating your health records']
+            }
+        
+        # Add statistics
+        insights_response = {
+            'success': True,
+            'insights': {
+                'summary': ai_insights.get('summary', 'Analysis complete'),
+                'trends': ai_insights.get('trends', [])[:5],
+                'recommendations': ai_insights.get('recommendations', [])[:5],
+                'statistics': {
+                    'total_records': len(records),
+                    'total_doctors': len(doctors),
+                    'total_treatments': len(treatments),
+                    'recent_visits': len([r for r in records if r['record_date'] and r['record_date'].startswith('2025')])
+                }
+            }
+        }
+        
+        return jsonify(insights_response), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error generating health insights: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error generating insights: {str(e)}',
+            'insights': {
+                'summary': 'Unable to generate insights at this time.',
+                'trends': [],
+                'recommendations': ['Try again later'],
+                'statistics': {'total_records': 0, 'total_doctors': 0, 'total_treatments': 0}
+            }
+        }), 500
 
 if __name__ == '__main__':
     # Run on localhost only

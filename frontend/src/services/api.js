@@ -276,6 +276,17 @@ export const apiService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to delete doctor');
     }
+  },
+
+  // AI Health Insights
+  getHealthInsights: async (userId) => {
+    try {
+      const response = await api.get(`/api/health-insights/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching health insights:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch health insights');
+    }
   }
 };
 

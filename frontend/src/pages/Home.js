@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import AddDoctorModal from '../components/AddDoctorModal';
 import AddRecordModal from '../components/AddRecordModal';
+import HealthInsights from '../components/HealthInsights';
 import { apiService } from '../services/api';
 
 const Home = ({ user, onLogout }) => {
@@ -185,13 +186,16 @@ const Home = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {loading ? (
+{loading ? (
           <div className="loading-container">
             <div className="neo-spinner"></div>
             <p className="loading-text">Loading your health data...</p>
           </div>
         ) : (
           <>
+            {/* AI Health Insights */}
+            <HealthInsights userId={user.user_id} />
+
             {/* Quick Action Buttons */}
             <div className="quick-actions-card">
               <h3 className="card-title">
