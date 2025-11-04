@@ -4,6 +4,7 @@ A modern, responsive web application for managing personal health records, built
 
 ## 🌟 Features
 
+- **🤖 AI Health Insights**: Powered by Google Gemini 2.5 - Get personalized health analysis, trends, and recommendations
 - **📱 Mobile-First Design**: Fully responsive interface optimized for phones and tablets
 - **👨‍⚕️ Doctor Management**: Store and manage your healthcare providers
 - **📋 Medical Records**: Track your medical history, appointments, and test results  
@@ -24,6 +25,7 @@ A modern, responsive web application for managing personal health records, built
 - **Python Flask** - RESTful API server
 - **SQLite** - Lightweight database
 - **Flask-CORS** - Cross-origin resource sharing
+- **Google Gemini AI** - AI-powered health insights and analysis
 
 ### Mobile
 - **Capacitor** - Cross-platform mobile app framework
@@ -163,6 +165,33 @@ lifetrack/
 
 For detailed mobile build instructions, see `MOBILE_BUILD_INSTRUCTIONS.md`.
 
+## 🤖 AI Features
+
+### Google Gemini Integration
+
+LifeTrack uses Google's Gemini 2.5 AI to provide intelligent health insights:
+
+- **Personalized Health Summary**: AI analyzes your complete medical history
+- **Trend Detection**: Identifies patterns in doctor visits, treatments, and diagnoses
+- **Smart Recommendations**: Actionable health advice based on your records
+- **Statistics Dashboard**: Visual display of health metrics and activity
+- **Auto-fallback System**: Tries multiple Gemini models for reliability
+- **Real-time Analysis**: Get updated insights with a single click
+
+### How It Works
+
+1. User health data (records, treatments, doctor visits) is securely sent to the backend
+2. Backend formats data into a structured prompt for Gemini AI
+3. Gemini analyzes patterns, trends, and generates personalized insights
+4. Results are displayed in a beautiful glassmorphic UI component
+5. Users can refresh insights anytime to get updated analysis
+
+### AI Models Used
+
+- **Primary**: Gemini 2.5 Flash (Fast, efficient, 1M token context)
+- **Backup**: Gemini 2.0 Flash (Alternative stable version)
+- **Premium**: Gemini 2.5 Pro (Most capable, deeper analysis)
+
 ## 🎨 UI/UX Features
 
 - **Glassmorphism Design**: Modern frosted glass effect
@@ -195,6 +224,9 @@ For detailed mobile build instructions, see `MOBILE_BUILD_INSTRUCTIONS.md`.
 - `POST /api/treatments` - Add new treatment
 - `PUT /api/treatments/:id` - Update treatment
 - `DELETE /api/treatments/:id` - Delete treatment
+
+### AI Insights
+- `GET /api/health-insights/:user_id` - Get AI-powered health insights and recommendations
 
 ## 🚀 Local Development
 
@@ -239,13 +271,16 @@ If you encounter any issues or have questions:
 
 ## 📈 Roadmap
 
+- [x] **AI Health Insights** - Powered by Google Gemini ✅
 - [ ] iOS app support
 - [ ] Data export/import
 - [ ] Appointment scheduling
-- [ ] Medication reminders
-- [ ] Health metrics tracking
+- [ ] Medication reminders with AI suggestions
+- [ ] Health metrics tracking with trend analysis
 - [ ] PDF report generation
 - [ ] Multi-language support
+- [ ] AI-powered symptom checker
+- [ ] Medical document OCR and auto-extraction
 
 ## ⭐ Acknowledgments
 
