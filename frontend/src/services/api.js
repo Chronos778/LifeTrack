@@ -278,6 +278,34 @@ export const apiService = {
     }
   },
 
+  // UPDATE methods for editing data
+  updateDoctor: async (doctorId, doctorData) => {
+    try {
+      const response = await api.put(`/doctors/${doctorId}`, doctorData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update doctor');
+    }
+  },
+
+  updateHealthRecord: async (recordId, recordData) => {
+    try {
+      const response = await api.put(`/health_records/${recordId}`, recordData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update health record');
+    }
+  },
+
+  updateTreatment: async (treatmentId, treatmentData) => {
+    try {
+      const response = await api.put(`/treatment/${treatmentId}`, treatmentData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update treatment');
+    }
+  },
+
   // AI Health Insights
   getHealthInsights: async (userId) => {
     try {
@@ -295,6 +323,38 @@ export const apiService = {
         status: error.response?.status
       });
       throw new Error(error.response?.data?.message || 'Failed to fetch health insights');
+    }
+  },
+
+  // Voice-to-Record: Parse voice input with AI
+  parseVoiceRecord: async (text, userId) => {
+    try {
+      const response = await api.post('/api/parse-voice-record', {
+        text: text,
+        user_id: userId
+      }, {
+        timeout: 30000  // 30 seconds for AI parsing
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error parsing voice record:', error);
+      throw new Error(error.response?.data?.message || 'Failed to parse voice input');
+    }
+  },
+
+  // Voice-to-Doctor: Parse voice input for doctor with AI
+  parseVoiceDoctor: async (text, userId) => {
+    try {
+      const response = await api.post('/api/parse-voice-doctor', {
+        text: text,
+        user_id: userId
+      }, {
+        timeout: 30000  // 30 seconds for AI parsing
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error parsing voice doctor:', error);
+      throw new Error(error.response?.data?.message || 'Failed to parse voice input');
     }
   }
 };

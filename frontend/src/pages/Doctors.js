@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import AddDoctorModal from '../components/AddDoctorModal';
+import EditDoctorModal from '../components/EditDoctorModal';
+import VoiceAddDoctorModal from '../components/VoiceAddDoctorModal';
 import { apiService } from '../services/api';
 
 const Doctors = ({ user, onLogout }) => {
@@ -8,6 +10,9 @@ const Doctors = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -27,8 +32,13 @@ const Doctors = ({ user, onLogout }) => {
     }
   };
 
+  const handleEditDoctor = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowEditModal(true);
+  };
+
   const handleDeleteDoctor = async (doctorId) => {
-    if (window.confirm('Are you sure you want to delete this doctor?')) {
+    if (window.confirm('Are you sure you want to delete this doctor? This will also delete all related health records and treatments.')) {
       try {
         await apiService.deleteDoctor(doctorId);
         setDoctors(doctors.filter(doctor => doctor.doctor_id !== doctorId));
@@ -94,6 +104,12 @@ const Doctors = ({ user, onLogout }) => {
             >
               👨‍⚕️ Add Doctor
             </button>
+            <button 
+              className="neo-btn neo-btn-primary"
+              onClick={() => setShowVoiceModal(true)}
+            >
+              🎤 Voice Doctor
+            </button>
           </div>
         </div>
 
@@ -133,13 +149,22 @@ const Doctors = ({ user, onLogout }) => {
                         ID: #{doctor.doctor_id}
                       </div>
                     </div>
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDeleteDoctor(doctor.doctor_id)}
-                      title="Delete Doctor"
-                    >
-                      🗑️
-                    </button>
+                    <div className="card-actions">
+                      <button 
+                        className="edit-btn"
+                        onClick={() => handleEditDoctor(doctor)}
+                        title="Edit Doctor"
+                      >
+                        ✏️
+                      </button>
+                      <button 
+                        className="delete-btn"
+                        onClick={() => handleDeleteDoctor(doctor.doctor_id)}
+                        title="Delete Doctor"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
 
                   <div className="specialization-badge">
@@ -207,6 +232,34 @@ const Doctors = ({ user, onLogout }) => {
             fetchDoctors();
             setShowAddModal(false);
           }}
+        />
+      )}
+
+      {showEditModal && selectedDoctor && (
+        <EditDoctorModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedDoctor(null);
+          }}
+          onSuccess={(message) => {
+            fetchDoctors();
+            setShowEditModal(false);
+            setSelectedDoctor(null);
+          }}
+          doctor={selectedDoctor}
+        />
+      )}
+
+      {showVoiceModal && (
+        <VoiceAddDoctorModal
+          isOpen={showVoiceModal}
+          onClose={() => setShowVoiceModal(false)}
+          onSuccess={(message) => {
+            fetchDoctors();
+            setShowVoiceModal(false);
+          }}
+          user={user}
         />
       )}
     </div>

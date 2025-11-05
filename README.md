@@ -1,17 +1,27 @@
 # LifeTrack - Personal Health Record Management System
 
-A modern, responsive web application for managing personal health records, built with React and Python Flask.
+A modern, AI-powered web application for managing personal health records, built with React and Python Flask.
 
 ## 🌟 Features
 
+### Core Features
 - **🤖 AI Health Insights**: Powered by Google Gemini 2.5 - Get personalized health analysis, trends, and recommendations
+- **🎤 Voice-to-Text Entry**: Speak naturally to add health records and doctors - AI automatically extracts and structures data
+- **✏️ Full CRUD Operations**: Create, Read, Update, and Delete for all records, doctors, and treatments
 - **📱 Mobile-First Design**: Fully responsive interface optimized for phones and tablets
-- **👨‍⚕️ Doctor Management**: Store and manage your healthcare providers
-- **📋 Medical Records**: Track your medical history, appointments, and test results  
-- **💊 Treatment Tracking**: Monitor medications, treatments, and prescriptions
+- **👨‍⚕️ Doctor Management**: Store, edit, and manage your healthcare providers
+- **📋 Medical Records**: Track, edit, and search your medical history, appointments, and test results  
+- **💊 Treatment Tracking**: Monitor, update, and manage medications, treatments, and prescriptions
 - **🔐 Secure Authentication**: User login and session management
-- **📊 Dashboard**: Overview of your health data at a glance
+- **📊 Dashboard**: Interactive overview of your health data with statistics
 - **📱 Mobile App**: Android APK available via Capacitor
+
+### AI-Powered Features
+- **Smart Health Analysis**: Multi-model fallback system (Gemini 2.0 Flash Exp, 2.0 Flash, 1.5 Flash, 1.5 Pro)
+- **Voice-to-Record**: Speak your health information naturally, AI parses and categorizes automatically
+- **Voice-to-Doctor**: Add new doctors by speaking their details
+- **Intelligent Data Extraction**: AI separates medication names from dosages, identifies doctors, diagnoses, and dates
+- **Fallback Parser**: Regex-based extraction ensures data is captured even if AI is unavailable
 
 ## 🚀 Tech Stack
 
@@ -87,10 +97,22 @@ lifetrack/
    pip install -r requirements.txt
    ```
 
-4. **Initialize database:**
+4. **Set up environment variables:**
+   ```bash
+   # Create .env file in backend directory
+   cp .env.example .env
+   
+   # Add your Google Gemini API key:
+   # GEMINI_API_KEY=your_api_key_here
+   ```
+
+   Get your free API key from: https://makersuite.google.com/app/apikey
+
+5. **Initialize database:**
    ```bash
    python app.py
    ```
+   The database will be created automatically on first run.
 
 ### Frontend Setup
 
@@ -169,13 +191,29 @@ For detailed mobile build instructions, see `MOBILE_BUILD_INSTRUCTIONS.md`.
 
 ### Google Gemini Integration
 
-LifeTrack uses Google's Gemini 2.5 AI to provide intelligent health insights:
+LifeTrack uses Google's Gemini AI to provide intelligent health insights and voice-powered data entry:
 
+#### AI Health Insights
 - **Personalized Health Summary**: AI analyzes your complete medical history
 - **Trend Detection**: Identifies patterns in doctor visits, treatments, and diagnoses
 - **Smart Recommendations**: Actionable health advice based on your records
 - **Statistics Dashboard**: Visual display of health metrics and activity
-- **Auto-fallback System**: Tries multiple Gemini models for reliability
+- **Multi-Model Fallback**: Automatically tries Gemini 2.0 Flash Exp → 2.0 Flash → 1.5 Flash → 1.5 Pro
+
+#### Voice-to-Text Features
+- **Voice-to-Record**: Speak naturally about your health - AI extracts doctor, diagnosis, date, medication, and dosage
+- **Voice-to-Doctor**: Add new doctors by speaking their name, specialization, contact info
+- **Smart Parsing**: AI separates medication names from dosages, identifies dates and doctors
+- **Fallback Parser**: Regex-based extraction ensures data capture even without AI
+- **Real-time Transcription**: See your speech converted to text in real-time
+- **Editable Preview**: Review and edit AI-extracted data before saving
+
+#### How to Use Voice Features
+1. Click "🎤 Voice Record" or "🎤 Voice Doctor" button
+2. Click "Start Listening" and speak naturally
+3. AI transcribes and parses your speech automatically
+4. Review the extracted information
+5. Edit if needed and click "Save"
 - **Real-time Analysis**: Get updated insights with a single click
 
 ### How It Works
@@ -208,25 +246,27 @@ LifeTrack uses Google's Gemini 2.5 AI to provide intelligent health insights:
 - `POST /api/login` - User login
 
 ### Doctors
-- `GET /api/doctors` - Get all doctors
-- `POST /api/doctors` - Add new doctor
-- `PUT /api/doctors/:id` - Update doctor
-- `DELETE /api/doctors/:id` - Delete doctor
+- `GET /doctors` - Get all doctors
+- `POST /doctors` - Add new doctor
+- `PUT /doctors/<id>` - Update doctor
+- `DELETE /doctors/<id>` - Delete doctor (cascades to records and treatments)
 
-### Records
-- `GET /api/records` - Get all medical records
-- `POST /api/records` - Add new record
-- `PUT /api/records/:id` - Update record
-- `DELETE /api/records/:id` - Delete record
+### Health Records
+- `GET /health_records` - Get all medical records
+- `POST /health_records` - Add new record
+- `PUT /health_records/<id>` - Update record
+- `DELETE /health_records/<id>` - Delete record
 
 ### Treatments
-- `GET /api/treatments` - Get all treatments
-- `POST /api/treatments` - Add new treatment
-- `PUT /api/treatments/:id` - Update treatment
-- `DELETE /api/treatments/:id` - Delete treatment
+- `GET /treatment` - Get all treatments
+- `POST /treatment` - Add new treatment
+- `PUT /treatment/<id>` - Update treatment
+- `DELETE /treatment/<id>` - Delete treatment
 
-### AI Insights
-- `GET /api/health-insights/:user_id` - Get AI-powered health insights and recommendations
+### AI Features
+- `GET /api/health-insights/<user_id>` - Get AI-powered health insights and recommendations
+- `POST /api/parse-voice-record` - Parse voice input to extract health record data
+- `POST /api/parse-voice-doctor` - Parse voice input to extract doctor information
 
 ## 🚀 Local Development
 

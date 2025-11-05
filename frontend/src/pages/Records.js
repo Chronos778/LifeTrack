@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import AddRecordModal from '../components/AddRecordModal';
+import EditRecordModal from '../components/EditRecordModal';
+import VoiceRecordModal from '../components/VoiceRecordModal';
 import { apiService } from '../services/api';
 
 const Records = ({ user, onLogout }) => {
@@ -9,6 +11,9 @@ const Records = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   const fetchData = useCallback(async () => {
@@ -57,6 +62,25 @@ const Records = ({ user, onLogout }) => {
     }
   };
 
+  const handleEditRecord = (record) => {
+    setSelectedRecord(record);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteRecord = async (recordId) => {
+    if (window.confirm('Are you sure you want to delete this health record?')) {
+      try {
+        await apiService.deleteHealthRecord(recordId);
+        setUserRecords(userRecords.filter(record => record.record_id !== recordId));
+        setSuccessMessage('Health record deleted successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } catch (error) {
+        console.error('Error deleting health record:', error);
+        alert('Failed to delete health record');
+      }
+    }
+  };
+
   const filteredRecords = userRecords.filter(record =>
     record.condition_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     record.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,6 +124,12 @@ const Records = ({ user, onLogout }) => {
             >
               📄 Add Record
             </button>
+            <button 
+              className="neo-btn neo-btn-primary"
+              onClick={() => setShowVoiceModal(true)}
+            >
+              🎤 Voice Record
+            </button>
           </div>
         </div>
 
@@ -141,11 +171,29 @@ const Records = ({ user, onLogout }) => {
                           </span>
                         </div>
                       </div>
-                      {record.severity && (
-                        <div className={`severity-badge severity-${record.severity.toLowerCase()}`}>
-                          {record.severity}
+                      <div className="card-actions-row">
+                        {record.severity && (
+                          <div className={`severity-badge severity-${record.severity.toLowerCase()}`}>
+                            {record.severity}
+                          </div>
+                        )}
+                        <div className="card-actions">
+                          <button 
+                            className="edit-btn"
+                            onClick={() => handleEditRecord(record)}
+                            title="Edit Record"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            className="delete-btn"
+                            onClick={() => handleDeleteRecord(record.record_id)}
+                            title="Delete Record"
+                          >
+                            🗑️
+                          </button>
                         </div>
-                      )}
+                      </div>
                     </div>
 
                     {doctor && (
@@ -216,6 +264,39 @@ const Records = ({ user, onLogout }) => {
             setTimeout(() => setSuccessMessage(''), 5000);
           }}
           doctors={doctors}
+          user={user}
+        />
+      )}
+
+      {showEditModal && selectedRecord && (
+        <EditRecordModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedRecord(null);
+          }}
+          onSuccess={(message) => {
+            setSuccessMessage(message);
+            fetchData();
+            setShowEditModal(false);
+            setSelectedRecord(null);
+            setTimeout(() => setSuccessMessage(''), 5000);
+          }}
+          record={selectedRecord}
+          doctors={doctors}
+        />
+      )}
+
+      {showVoiceModal && (
+        <VoiceRecordModal
+          isOpen={showVoiceModal}
+          onClose={() => setShowVoiceModal(false)}
+          onSuccess={(message) => {
+            setSuccessMessage(message);
+            fetchData();
+            setShowVoiceModal(false);
+            setTimeout(() => setSuccessMessage(''), 5000);
+          }}
           user={user}
         />
       )}
