@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import AddTreatmentModal from '../components/AddTreatmentModal';
+import EditTreatmentModal from '../components/EditTreatmentModal';
 import { apiService } from '../services/api';
 
 const Treatments = ({ user, onLogout }) => {
@@ -10,6 +11,8 @@ const Treatments = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTreatment, setSelectedTreatment] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = useCallback(async () => {
@@ -35,6 +38,11 @@ const Treatments = ({ user, onLogout }) => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleEditTreatment = (treatment) => {
+    setSelectedTreatment(treatment);
+    setShowEditModal(true);
+  };
 
   const handleDeleteTreatment = async (treatmentId) => {
     if (window.confirm('Are you sure you want to delete this treatment?')) {
@@ -149,13 +157,22 @@ const Treatments = ({ user, onLogout }) => {
                           </div>
                         )}
                       </div>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => handleDeleteTreatment(treatment.treatment_id)}
-                        title="Delete Treatment"
-                      >
-                        🗑️
-                      </button>
+                      <div className="card-actions">
+                        <button 
+                          className="edit-btn"
+                          onClick={() => handleEditTreatment(treatment)}
+                          title="Edit Treatment"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => handleDeleteTreatment(treatment.treatment_id)}
+                          title="Delete Treatment"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
 
                     {record && (
@@ -259,6 +276,22 @@ const Treatments = ({ user, onLogout }) => {
             setShowAddModal(false);
           }}
           user={user}
+        />
+      )}
+
+      {showEditModal && selectedTreatment && (
+        <EditTreatmentModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTreatment(null);
+          }}
+          onSuccess={(message) => {
+            fetchData();
+            setShowEditModal(false);
+            setSelectedTreatment(null);
+          }}
+          treatment={selectedTreatment}
         />
       )}
     </div>

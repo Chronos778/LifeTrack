@@ -344,6 +344,16 @@ textarea {
   box-shadow: 0 16px 40px rgba(0, 212, 255, 0.4);
 }
 
+.neo-btn-voice {
+  background: linear-gradient(45deg, #00d4ff, #090979) !important;
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3) !important;
+}
+
+.neo-btn-voice:hover {
+  box-shadow: 0 16px 40px rgba(0, 212, 255, 0.4) !important;
+  transform: translateY(-4px) scale(1.05) !important;
+}
+
 .neo-btn-danger {
   background: linear-gradient(45deg, #ff006e, #8338ec);
   box-shadow: 0 8px 24px rgba(255, 0, 110, 0.3);
@@ -757,20 +767,31 @@ textarea.neo-input {
   color: #00d4ff;
 }
 
-.modal-close {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
+.modal-close,
+.close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 8px;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 300;
+  line-height: 1;
 }
 
-.modal-close:hover {
+.modal-close:hover,
+.close-btn:hover {
   color: #ff006e;
   background: rgba(255, 0, 110, 0.1);
+  border-color: rgba(255, 0, 110, 0.3);
+  transform: scale(1.05);
 }
 
 /* Alerts */
@@ -1230,6 +1251,51 @@ textarea.neo-input {
   flex-wrap: wrap;
 }
 
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.action-category {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.action-category:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+}
+
+.action-category-title {
+  margin: 0 0 1rem 0;
+  color: #cbd5e0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.action-category .action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .action-buttons-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
 .welcome-card {
   background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(9, 9, 121, 0.1));
   backdrop-filter: blur(30px);
@@ -1481,6 +1547,27 @@ textarea.neo-input {
   font-size: 0.85rem;
 }
 
+.edit-btn {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00d4ff;
+  padding: 0.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  transform: scale(1.05);
+}
+
 .delete-btn {
   background: rgba(255, 59, 48, 0.1);
   border: 1px solid rgba(255, 59, 48, 0.3);
@@ -1490,11 +1577,30 @@ textarea.neo-input {
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 1rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-btn:hover {
   background: rgba(255, 59, 48, 0.2);
   transform: scale(1.05);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.card-actions-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .specialization-badge {

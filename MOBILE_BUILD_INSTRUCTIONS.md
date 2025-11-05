@@ -57,12 +57,12 @@ Before building the APK, ensure you have:
 ## App Configuration
 - **App Name**: LifeTrack
 - **Package ID**: com.lifetrack.app
-- **Backend**: Connected to Railway server (https://lifetrackbackend-production.up.railway.app)
+- **Backend**: Connected to localhost server (http://localhost:5000)
 
 ## Testing the App
 1. Install the APK on an Android device
-2. The app will work offline for UI interactions
-3. For full functionality, ensure the device has internet access to connect to the Railway backend
+2. Ensure the backend server is running on your local network
+3. Configure the API URL in the app to point to your computer's local IP address (e.g., http://192.168.x.x:5000)
 
 ## Troubleshooting
 - If Android Studio doesn't open automatically, manually open the `frontend/android` folder in Android Studio

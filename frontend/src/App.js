@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
 import Records from './pages/Records';
 import Treatments from './pages/Treatments';
+import APITest from './pages/APITest';
 import './modern-ui.css';
 
 function App() {
@@ -88,6 +89,12 @@ function App() {
             element={
               user ? <Treatments user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
             } 
+          />
+          
+          {/* API Test Route - for debugging */}
+          <Route 
+            path="/api-test" 
+            element={<APITest />} 
           />
           
           {/* Default Route */}

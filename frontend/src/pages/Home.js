@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import AddDoctorModal from '../components/AddDoctorModal';
 import AddRecordModal from '../components/AddRecordModal';
+import HealthInsights from '../components/HealthInsights';
+import VoiceRecordModal from '../components/VoiceRecordModal';
+import VoiceAddDoctorModal from '../components/VoiceAddDoctorModal';
 import { apiService } from '../services/api';
 
 const Home = ({ user, onLogout }) => {
@@ -16,17 +19,28 @@ const Home = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
   const [showAddRecordModal, setShowAddRecordModal] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showVoiceDoctorModal, setShowVoiceDoctorModal] = useState(false);
   const [allDoctors, setAllDoctors] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('🔄 Starting data fetch for user:', user.user_id);
       try {
+        console.log('📡 Making API calls...');
         const [userRecords, userTreatments, visitedDoctors, allDoctorsData] = await Promise.all([
           apiService.getUserHealthRecords(user.user_id),
           apiService.getUserTreatments(user.user_id),
           apiService.getDoctorsVisitedByUser(user.user_id),
           apiService.getDoctors()
         ]);
+
+        console.log('📊 Data received:', {
+          userRecords: userRecords.length,
+          userTreatments: userTreatments.length,
+          visitedDoctors: visitedDoctors.length,
+          allDoctors: allDoctorsData.length
+        });
 
         setStats({
           visitedDoctors: visitedDoctors.length,
@@ -39,8 +53,9 @@ const Home = ({ user, onLogout }) => {
         setDoctors(visitedDoctors);
         setAllDoctors(allDoctorsData);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('❌ Error fetching dashboard data:', error);
       } finally {
+        console.log('✅ Data fetch completed');
         setLoading(false);
       }
     };
@@ -139,6 +154,64 @@ const Home = ({ user, onLogout }) => {
     setShowAddRecordModal(false);
   };
 
+  const handleVoiceSuccess = (message) => {
+    // Refresh data after adding voice record
+    const fetchData = async () => {
+      try {
+        const [userRecords, userTreatments, visitedDoctors] = await Promise.all([
+          apiService.getUserHealthRecords(user.user_id),
+          apiService.getUserTreatments(user.user_id),
+          apiService.getDoctorsVisitedByUser(user.user_id)
+        ]);
+
+        setStats({
+          visitedDoctors: visitedDoctors.length,
+          totalRecords: userRecords.length,
+          totalTreatments: userTreatments.length,
+          recentActivity: userRecords.slice(0, 5).length
+        });
+
+        setRecentRecords(userRecords);
+        setDoctors(visitedDoctors);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+
+    fetchData();
+    setShowVoiceModal(false);
+  };
+
+  const handleVoiceDoctorSuccess = (message) => {
+    // Refresh data after adding voice doctor
+    const fetchData = async () => {
+      try {
+        const [userRecords, userTreatments, visitedDoctors, allDoctorsData] = await Promise.all([
+          apiService.getUserHealthRecords(user.user_id),
+          apiService.getUserTreatments(user.user_id),
+          apiService.getDoctorsVisitedByUser(user.user_id),
+          apiService.getDoctors()
+        ]);
+
+        setStats({
+          visitedDoctors: visitedDoctors.length,
+          totalRecords: userRecords.length,
+          totalTreatments: userTreatments.length,
+          recentActivity: userRecords.slice(0, 5).length
+        });
+
+        setRecentRecords(userRecords);
+        setDoctors(visitedDoctors);
+        setAllDoctors(allDoctorsData);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+
+    fetchData();
+    setShowVoiceDoctorModal(false);
+  };
+
   return (
     <div className="app">
       <Navbar user={user} onLogout={onLogout} />
@@ -175,31 +248,56 @@ const Home = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {loading ? (
+{loading ? (
           <div className="loading-container">
             <div className="neo-spinner"></div>
             <p className="loading-text">Loading your health data...</p>
           </div>
         ) : (
           <>
+            {/* AI Health Insights */}
+            <HealthInsights userId={user.user_id} />
+
             {/* Quick Action Buttons */}
             <div className="quick-actions-card">
               <h3 className="card-title">
                 Quick Actions
               </h3>
-              <div className="action-buttons">
-                <button
-                  className="neo-btn neo-btn-primary"
-                  onClick={() => setShowAddDoctorModal(true)}
-                >
-                  👨‍⚕️ Add Doctor
-                </button>
-                <button
-                  className="neo-btn neo-btn-primary"
-                  onClick={() => setShowAddRecordModal(true)}
-                >
-                  📄 Add Record
-                </button>
+              <div className="action-buttons-grid">
+                <div className="action-category">
+                  <h4 className="action-category-title">📋 Traditional Entry</h4>
+                  <div className="action-buttons">
+                    <button
+                      className="neo-btn neo-btn-primary"
+                      onClick={() => setShowAddDoctorModal(true)}
+                    >
+                      👨‍⚕️ Add Doctor
+                    </button>
+                    <button
+                      className="neo-btn neo-btn-primary"
+                      onClick={() => setShowAddRecordModal(true)}
+                    >
+                      📄 Add Record
+                    </button>
+                  </div>
+                </div>
+                <div className="action-category">
+                  <h4 className="action-category-title">🎤 Voice Entry (AI Powered)</h4>
+                  <div className="action-buttons">
+                    <button
+                      className="neo-btn neo-btn-voice"
+                      onClick={() => setShowVoiceDoctorModal(true)}
+                    >
+                      🎤 Voice Doctor
+                    </button>
+                    <button
+                      className="neo-btn neo-btn-voice"
+                      onClick={() => setShowVoiceModal(true)}
+                    >
+                      🎤 Voice Record
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -230,6 +328,26 @@ const Home = ({ user, onLogout }) => {
           onClose={() => setShowAddRecordModal(false)}
           onSuccess={handleRecordSuccess}
           doctors={allDoctors}
+          user={user}
+        />
+      )}
+
+      {/* Voice Record Modal */}
+      {showVoiceModal && (
+        <VoiceRecordModal
+          isOpen={showVoiceModal}
+          onClose={() => setShowVoiceModal(false)}
+          onSuccess={handleVoiceSuccess}
+          user={user}
+        />
+      )}
+
+      {/* Voice Add Doctor Modal */}
+      {showVoiceDoctorModal && (
+        <VoiceAddDoctorModal
+          isOpen={showVoiceDoctorModal}
+          onClose={() => setShowVoiceDoctorModal(false)}
+          onSuccess={handleVoiceDoctorSuccess}
           user={user}
         />
       )}

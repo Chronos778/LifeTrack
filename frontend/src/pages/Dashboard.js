@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { apiService } from '../services/api';
+import HealthInsights from '../components/HealthInsights';
 
 const Dashboard = ({ user, onLogout }) => {
   const [data, setData] = useState({
@@ -80,6 +81,9 @@ const Dashboard = ({ user, onLogout }) => {
           <h1 className="page-title">System Dashboard</h1>
           <p className="page-subtitle">Overview of your LifeTrack personal health management system</p>
         </div>
+
+        {/* AI Health Insights Component */}
+        {user && <HealthInsights userId={user.user_id} />}
         
         <div className="dashboard-grid">
           {/* Users Card */}
