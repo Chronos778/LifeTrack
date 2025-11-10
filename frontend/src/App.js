@@ -8,7 +8,9 @@ import Doctors from './pages/Doctors';
 import Records from './pages/Records';
 import Treatments from './pages/Treatments';
 import APITest from './pages/APITest';
+import { ThemeProvider } from './context/ThemeContext';
 import './modern-ui.css';
+import './light-theme.css';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -42,69 +44,71 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="app">
-        <Routes>
-          {/* Public Routes */}
-          <Route 
-            path="/login" 
-            element={
-              user ? <Navigate to="/home" replace /> : <Login onLogin={handleLogin} />
-            } 
-          />
-          <Route 
-            path="/register" 
-            element={
-              user ? <Navigate to="/home" replace /> : <Register />
-            } 
-          />
-          
-          {/* Protected Routes */}
-          <Route 
-            path="/home" 
-            element={
-              user ? <Home user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
-            } 
-          />
-          <Route 
-            path="/dashboard" 
-            element={
-              user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
-            } 
-          />
-          <Route 
-            path="/doctors" 
-            element={
-              user ? <Doctors user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
-            } 
-          />
-          <Route 
-            path="/records" 
-            element={
-              user ? <Records user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
-            } 
-          />
-          <Route 
-            path="/treatments" 
-            element={
-              user ? <Treatments user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
-            } 
-          />
-          
-          {/* API Test Route - for debugging */}
-          <Route 
-            path="/api-test" 
-            element={<APITest />} 
-          />
-          
-          {/* Default Route */}
-          <Route 
-            path="/" 
-            element={<Navigate to={user ? "/home" : "/login"} replace />} 
-          />
-        </Routes>
-      </div>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <div className="app">
+          <Routes>
+            {/* Public Routes */}
+            <Route 
+              path="/login" 
+              element={
+                user ? <Navigate to="/home" replace /> : <Login onLogin={handleLogin} />
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                user ? <Navigate to="/home" replace /> : <Register />
+              } 
+            />
+            
+            {/* Protected Routes */}
+            <Route 
+              path="/home" 
+              element={
+                user ? <Home user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/doctors" 
+              element={
+                user ? <Doctors user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/records" 
+              element={
+                user ? <Records user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/treatments" 
+              element={
+                user ? <Treatments user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
+              } 
+            />
+            
+            {/* API Test Route - for debugging */}
+            <Route 
+              path="/api-test" 
+              element={<APITest />} 
+            />
+            
+            {/* Default Route */}
+            <Route 
+              path="/" 
+              element={<Navigate to={user ? "/home" : "/login"} replace />} 
+            />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 

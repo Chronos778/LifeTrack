@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = ({ user, onLogout }) => {
   const location = useLocation();
@@ -47,7 +48,8 @@ const Navbar = ({ user, onLogout }) => {
           </Link>
         </div>
         
-        <div className="nav-item nav-logout">
+        <div className="nav-item nav-actions">
+          <ThemeToggle />
           <button onClick={onLogout || logout} className="logout-btn">
             <span className="nav-icon">🚪</span>
             <span className="logout-text">Logout</span>
