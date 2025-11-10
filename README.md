@@ -8,6 +8,7 @@ A modern, AI-powered web application for managing personal health records, built
 - **🤖 AI Health Insights**: Powered by Google Gemini 2.5 - Get personalized health analysis, trends, and recommendations
 - **🎤 Voice-to-Text Entry**: Speak naturally to add health records and doctors - AI automatically extracts and structures data
 - **✏️ Full CRUD Operations**: Create, Read, Update, and Delete for all records, doctors, and treatments
+- **🌓 Light/Dark Theme**: Beautiful dual theme system with smooth transitions and persistent user preference
 - **📱 Mobile-First Design**: Fully responsive interface optimized for phones and tablets
 - **👨‍⚕️ Doctor Management**: Store, edit, and manage your healthcare providers
 - **📋 Medical Records**: Track, edit, and search your medical history, appointments, and test results  
@@ -50,19 +51,24 @@ lifetrack/
 │   ├── data_structures.py     # Database models
 │   ├── phr_database.db        # SQLite database
 │   ├── phr_database.sql       # Database schema
+│   ├── reset_db.py           # Database reset utility
 │   ├── requirements.txt       # Python dependencies
-│   └── Procfile              # Deployment configuration
+│   └── .env.example          # Environment variables template
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # React components
+│   │   ├── components/        # React components (Modals, Navbar, ThemeToggle)
+│   │   ├── context/          # React Context (ThemeContext)
 │   │   ├── pages/            # Page components
 │   │   ├── services/         # API services
-│   │   └── modern-ui.css     # Styling
+│   │   ├── modern-ui.css     # Main styling (dark theme)
+│   │   └── light-theme.css   # Light theme styling
 │   ├── android/              # Capacitor Android project
 │   ├── public/               # Static assets
 │   └── package.json          # Node.js dependencies
 ├── DEPLOYMENT.md             # Deployment instructions
 ├── MOBILE_BUILD_INSTRUCTIONS.md # Mobile build guide
+├── FEATURES.md               # Detailed feature documentation
+├── CHANGELOG.md              # Version history
 └── README.md                 # This file
 ```
 
@@ -113,6 +119,12 @@ lifetrack/
    python app.py
    ```
    The database will be created automatically on first run.
+
+6. **Reset database (optional):**
+   ```bash
+   python reset_db.py
+   ```
+   This will reset the database to initial state with sample data.
 
 ### Frontend Setup
 
@@ -232,12 +244,42 @@ LifeTrack uses Google's Gemini AI to provide intelligent health insights and voi
 
 ## 🎨 UI/UX Features
 
-- **Glassmorphism Design**: Modern frosted glass effect
-- **Gradient Animations**: Smooth color transitions
-- **Mobile-Optimized Navbar**: Three-column grid layout
-- **Safe Area Support**: Compatible with modern phone screens
-- **Responsive Breakpoints**: Optimized for all screen sizes
-- **Touch-Friendly**: Large tap targets for mobile interaction
+- **Dual Theme System**: 
+  - 🌙 **Dark Theme**: Cyan (#00d4ff) accents with dark glassmorphism
+  - ☀️ **Light Theme**: Apple Blue (#007aff) accents with light, airy design
+  - Smooth 0.3s transitions between themes
+  - Persistent theme preference saved to localStorage
+  - Toggle button in navbar for easy switching
+- **Glassmorphism Design**: Modern frosted glass effect with backdrop blur
+- **Gradient Animations**: Smooth color transitions and animated backgrounds
+- **Mobile-Optimized Navbar**: Three-column grid layout with responsive design
+- **Safe Area Support**: Compatible with modern phone screens (notch/island support)
+- **Responsive Breakpoints**: Optimized for all screen sizes from mobile to desktop
+- **Touch-Friendly**: Large tap targets (44px minimum) for mobile interaction
+- **Accessibility**: ARIA labels, keyboard navigation, and screen reader support
+
+## 🌓 Theme System
+
+LifeTrack features a beautiful dual theme system that adapts to your preference:
+
+### Dark Theme (Default)
+- **Background**: Deep black gradients (#0a0a0a)
+- **Accent Color**: Cyan (#00d4ff)
+- **Design**: Futuristic glassmorphism with glowing effects
+- **Perfect for**: Night-time use, reduced eye strain
+
+### Light Theme
+- **Background**: Clean white with subtle grays (#ffffff, #f5f5f7)
+- **Accent Color**: Apple Blue (#007aff)
+- **Design**: Minimal, airy interface inspired by Apple's design language
+- **Perfect for**: Daytime use, professional settings
+
+### Features
+- **One-Click Toggle**: Sun/moon icon in navbar
+- **Smooth Transitions**: 0.3s animation between themes
+- **Persistent Storage**: Your choice is saved across sessions
+- **System-Wide**: Applies to all pages and components
+- **Optimized Contrast**: Text visibility optimized for both themes
 
 ## 🔧 API Endpoints
 
@@ -312,11 +354,20 @@ If you encounter any issues or have questions:
 ## 📈 Roadmap
 
 - [x] **AI Health Insights** - Powered by Google Gemini ✅
-- [ ] iOS app support
-- [ ] Data export/import
-- [ ] Appointment scheduling
-- [ ] Medication reminders with AI suggestions
-- [ ] Health metrics tracking with trend analysis
+- [x] **Voice-to-Text Entry** - Natural speech input for records and doctors ✅
+- [x] **Full CRUD Operations** - Complete edit/delete functionality ✅
+- [x] **Light/Dark Theme** - Beautiful dual theme system ✅
+- [ ] **iOS app support** - Extend mobile app to iOS platform
+- [ ] **Data export/import** - Backup and restore health records (JSON/CSV)
+- [ ] **Appointment scheduling** - Calendar integration with reminders
+- [ ] **Medication reminders** - Push notifications with AI-powered suggestions
+- [ ] **Health metrics tracking** - Charts and graphs with trend analysis
+- [ ] **PDF report generation** - Downloadable health summaries
+- [ ] **Multi-language support** - Internationalization (i18n)
+- [ ] **AI-powered symptom checker** - Interactive health assessment
+- [ ] **Medical document OCR** - Auto-extract data from prescription images
+- [ ] **Family account sharing** - Manage health records for dependents
+- [ ] **Doctor appointment booking** - Integration with healthcare providers
 - [ ] PDF report generation
 - [ ] Multi-language support
 - [ ] AI-powered symptom checker
