@@ -20,6 +20,11 @@ body {
   padding-top: env(safe-area-inset-top, 0);
 }
 
+/* Smooth transitions for theme switching */
+body * {
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 /* Mobile-friendly touch targets */
 button, 
 a, 
@@ -136,8 +141,15 @@ textarea {
   flex-wrap: wrap;
 }
 
-.nav-item.nav-logout {
+.nav-item.nav-logout,
+.nav-item.nav-actions {
   justify-content: flex-end;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .logo {
