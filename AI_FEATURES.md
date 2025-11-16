@@ -228,21 +228,33 @@ provider for medical decisions.
 
 ```bash
 cd backend
-pip install requests==2.31.0
+pip install -r requirements.txt
 ```
+
+Required packages:
+- Flask==2.3.2
+- Flask-CORS==4.0.0
+- requests==2.31.0
+- python-dotenv==1.0.0
 
 ### 2. Configure API Key
 
-**Option A: Environment Variable (Recommended)**
+**Option A: Environment File (Recommended)**
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` file:
+```env
+HUGGINGFACE_API_KEY=your-api-key-here
+```
+
+**Option B: Environment Variable**
 ```bash
 export HUGGINGFACE_API_KEY="your-api-key-here"
 ```
 
-**Option B: Direct in Code**
-```python
-# backend/app.py
-HUGGINGFACE_API_KEY = "your-api-key-here"
-```
+**Note:** The app uses `python-dotenv` to automatically load variables from `.env` file.
 
 ### 3. Test the Endpoint
 

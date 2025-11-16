@@ -102,6 +102,12 @@ lifetrack/
    ```bash
    pip install -r requirements.txt
    ```
+   
+   Required packages:
+   - Flask 2.3.2
+   - Flask-CORS 4.0.0
+   - requests 2.31.0
+   - python-dotenv 1.0.0
 
 4. **Set up environment variables:**
    ```bash
@@ -109,10 +115,10 @@ lifetrack/
    cp .env.example .env
    
    # Add your Hugging Face API key:
-   # HUGGINGFACE_API_KEY=your_api_key_here
+   HUGGINGFACE_API_KEY=your_api_key_here
    ```
 
-   Get your free API key from: https://makersuite.google.com/app/apikey
+   Get your free API key from: https://huggingface.co/settings/tokens
 
 5. **Initialize database:**
    ```bash

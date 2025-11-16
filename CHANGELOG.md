@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `.env.example` with new API key format
 - Removed `google-generativeai` dependency
 - Updated `requirements.txt` to use `requests` library
+- Added `python-dotenv` for automatic .env file loading
+- API keys now loaded from environment variables (security best practice)
 
 #### Documentation Updates
 - Updated README.md with Hugging Face integration details

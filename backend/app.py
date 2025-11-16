@@ -7,6 +7,10 @@ import threading
 import os
 import requests
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import our advanced data structures
 from data_structures import health_aggregator, HealthRecord, Doctor, Severity

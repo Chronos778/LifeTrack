@@ -107,6 +107,7 @@ lifetrack/
 - SQLite (with WAL mode for concurrency)
 - Hugging Face Inference API
 - Flask-CORS
+- python-dotenv (for environment variables)
 
 ### Mobile
 - Capacitor 7.4.3
