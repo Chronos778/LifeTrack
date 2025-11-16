@@ -9,7 +9,6 @@ const VoiceAddDoctorModal = ({ isOpen, onClose, onSuccess, user }) => {
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState('');
   const [recognition, setRecognition] = useState(null);
-  const [finalTranscript, setFinalTranscript] = useState(''); // Keep track of finalized text
 
   // Debug: Log when parsedData changes
   useEffect(() => {
@@ -45,11 +44,6 @@ const VoiceAddDoctorModal = ({ isOpen, onClose, onSuccess, user }) => {
           } else {
             interimTranscript += transcript;
           }
-        }
-
-        // Update the final transcript state if we have new final results
-        if (currentFinalTranscript) {
-          setFinalTranscript(currentFinalTranscript);
         }
 
         // Combine final and interim for display
@@ -94,7 +88,6 @@ const VoiceAddDoctorModal = ({ isOpen, onClose, onSuccess, user }) => {
         recognition.abort();
         setIsListening(false);
         setTranscript('');
-        setFinalTranscript(''); // Reset final transcript
         setParsedData(null);
         setError('');
       } catch (err) {
@@ -115,7 +108,6 @@ const VoiceAddDoctorModal = ({ isOpen, onClose, onSuccess, user }) => {
     }
 
     setTranscript('');
-    setFinalTranscript(''); // Reset final transcript
     setError('');
     setParsedData(null);
     

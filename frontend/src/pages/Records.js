@@ -200,7 +200,7 @@ const Records = ({ user, onLogout }) => {
                       <div className="doctor-section">
                         <h4 className="section-title">👨‍⚕️ Healthcare Provider</h4>
                         <div className="doctor-details">
-                          <div className="doctor-name">Dr. {doctor.name}</div>
+                          <div className="doctor-name">{doctor.name.toLowerCase().startsWith('dr.') || doctor.name.toLowerCase().startsWith('dr ') ? doctor.name : `Dr. ${doctor.name}`}</div>
                           <div className="doctor-specialization">{doctor.specialization}</div>
                           {doctor.contact_number && (
                             <div className="doctor-contact">📞 {doctor.contact_number}</div>

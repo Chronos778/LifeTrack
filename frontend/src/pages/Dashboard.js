@@ -118,7 +118,7 @@ const Dashboard = ({ user, onLogout }) => {
               {data.doctors.length > 0 ? (
                 data.doctors.slice(0, 5).map(doctor => (
                   <div key={doctor.doctor_id} className="dashboard-data-item">
-                    <div className="dashboard-item-name">Dr. {doctor.name}</div>
+                    <div className="dashboard-item-name">{doctor.name.toLowerCase().startsWith('dr.') || doctor.name.toLowerCase().startsWith('dr ') ? doctor.name : `Dr. ${doctor.name}`}</div>
                     <div className="dashboard-item-detail">
                       {doctor.specialization} • {doctor.contact_number}
                     </div>

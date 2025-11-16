@@ -143,7 +143,7 @@ const Doctors = ({ user, onLogout }) => {
                     </div>
                     <div className="doctor-info">
                       <h3 className="doctor-name">
-                        Dr. {doctor.name}
+                        {doctor.name.toLowerCase().startsWith('dr.') || doctor.name.toLowerCase().startsWith('dr ') ? doctor.name : `Dr. ${doctor.name}`}
                       </h3>
                       <div className="doctor-id">
                         ID: #{doctor.doctor_id}
