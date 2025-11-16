@@ -150,7 +150,9 @@ def get_urgent_treatments():
 @app.route('/health_records', methods=['POST'])
 def add_health_record():
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _insert():
             with get_connection() as conn:
@@ -188,7 +190,9 @@ def add_health_record():
 @app.route('/treatment', methods=['POST'])
 def add_treatment():
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _insert():
             with get_connection() as conn:
@@ -205,7 +209,7 @@ def add_treatment():
                 treatment_id = cursor.lastrowid
                 
                 # Add to priority queue if follow-up date exists
-                if data.get('follow_up_date'):
+                if data.get('follow_up_date') and treatment_id is not None:
                     follow_up_date = datetime.fromisoformat(data['follow_up_date'])
                     # Determine severity from associated health record
                     cursor.execute("SELECT diagnosis FROM health_records WHERE record_id = ?", (data['record_id'],))
@@ -235,7 +239,9 @@ def add_treatment():
 @app.route('/doctors', methods=['POST'])
 def add_doctor():
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _insert():
             with get_connection() as conn:
@@ -252,14 +258,15 @@ def add_doctor():
                 doctor_id = cursor.lastrowid
                 
                 # Add to doctor analytics
-                doctor = Doctor(
-                    doctor_id=doctor_id,
-                    name=data['name'],
-                    specialization=data.get('specialization', ''),
-                    contact_number=data.get('contact_number', ''),
-                    email=data.get('email', '')
-                )
-                health_aggregator.doctor_analytics.add_doctor(doctor)
+                if doctor_id is not None:
+                    doctor = Doctor(
+                        doctor_id=doctor_id,
+                        name=data['name'],
+                        specialization=data.get('specialization', ''),
+                        contact_number=data.get('contact_number', ''),
+                        email=data.get('email', '')
+                    )
+                    health_aggregator.doctor_analytics.add_doctor(doctor)
                 
                 return doctor_id
 
@@ -271,7 +278,9 @@ def add_doctor():
 @app.route('/users', methods=['POST'])
 def add_user():
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _insert():
             with get_connection() as conn:
@@ -379,14 +388,14 @@ def delete_doctor(doctor_id):
                 }
 
         result = execute_write(_delete)
-        if result.get('status') == 'NOT_FOUND':
+        if result and result.get('status') == 'NOT_FOUND':
             return jsonify({'success': False, 'message': 'Doctor not found'}), 404
         return jsonify({
             'success': True,
             'message': 'Doctor and related data deleted successfully',
             'details': {
-                'health_records_deleted': result.get('records_deleted', 0),
-                'treatments_deleted': result.get('treatments_deleted', 0)
+                'health_records_deleted': result.get('records_deleted', 0) if result else 0,
+                'treatments_deleted': result.get('treatments_deleted', 0) if result else 0
             }
         }), 200
     except Exception as e:
@@ -396,7 +405,9 @@ def delete_doctor(doctor_id):
 @app.route('/doctors/<int:doctor_id>', methods=['PUT'])
 def update_doctor(doctor_id):
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _update():
             with get_connection() as conn:
@@ -423,7 +434,7 @@ def update_doctor(doctor_id):
                 return {'status': 'UPDATED'}
 
         result = execute_write(_update)
-        if result.get('status') == 'NOT_FOUND':
+        if result and result.get('status') == 'NOT_FOUND':
             return jsonify({'success': False, 'message': 'Doctor not found'}), 404
         
         return jsonify({'success': True, 'message': 'Doctor updated successfully'}), 200
@@ -433,7 +444,9 @@ def update_doctor(doctor_id):
 @app.route('/health_records/<int:record_id>', methods=['PUT'])
 def update_health_record(record_id):
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _update():
             with get_connection() as conn:
@@ -460,7 +473,7 @@ def update_health_record(record_id):
                 return {'status': 'UPDATED'}
 
         result = execute_write(_update)
-        if result.get('status') == 'NOT_FOUND':
+        if result and result.get('status') == 'NOT_FOUND':
             return jsonify({'success': False, 'message': 'Health record not found'}), 404
         
         return jsonify({'success': True, 'message': 'Health record updated successfully'}), 200
@@ -470,7 +483,9 @@ def update_health_record(record_id):
 @app.route('/treatment/<int:treatment_id>', methods=['PUT'])
 def update_treatment(treatment_id):
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
 
         def _update():
             with get_connection() as conn:
@@ -496,7 +511,7 @@ def update_treatment(treatment_id):
                 return {'status': 'UPDATED'}
 
         result = execute_write(_update)
-        if result.get('status') == 'NOT_FOUND':
+        if result and result.get('status') == 'NOT_FOUND':
             return jsonify({'success': False, 'message': 'Treatment not found'}), 404
         
         return jsonify({'success': True, 'message': 'Treatment updated successfully'}), 200
