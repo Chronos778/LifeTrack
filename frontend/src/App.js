@@ -17,22 +17,19 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage)
-    const savedUser = localStorage.getItem('healthcare_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Don't restore user session from storage for security
+    // User will need to login again on page refresh
     setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
-    sessionStorage.setItem('healthcare_user', JSON.stringify(userData));
+    // No storage - keep user data in memory only for security
   };
 
   const handleLogout = () => {
     setUser(null);
-    sessionStorage.removeItem('healthcare_user');
+    // Clear any session data if needed
   };
 
   if (loading) {
