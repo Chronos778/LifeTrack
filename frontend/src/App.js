@@ -27,12 +27,12 @@ function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem('healthcare_user', JSON.stringify(userData));
+    sessionStorage.setItem('healthcare_user', JSON.stringify(userData));
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('healthcare_user');
+    sessionStorage.removeItem('healthcare_user');
   };
 
   if (loading) {

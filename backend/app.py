@@ -119,7 +119,8 @@ def get_user_health_summary(user_id):
         summary = health_aggregator.get_user_health_summary(user_id)
         return jsonify(summary)
     except Exception as e:
-        return jsonify({'error': f'Failed to get health summary: {str(e)}'}), 500
+        app.logger.error(f'Failed to get health summary: {str(e)}')
+        return jsonify({'error': 'Failed to get health summary'}), 500
 
 @app.route('/analytics/system', methods=['GET'])
 def get_system_analytics():
@@ -128,7 +129,8 @@ def get_system_analytics():
         analytics = health_aggregator.get_system_analytics()
         return jsonify(analytics)
     except Exception as e:
-        return jsonify({'error': f'Failed to get analytics: {str(e)}'}), 500
+        app.logger.error(f'Failed to get analytics: {str(e)}')
+        return jsonify({'error': 'Failed to get analytics'}), 500
 
 @app.route('/treatments/urgent', methods=['GET'])
 def get_urgent_treatments():
@@ -144,7 +146,8 @@ def get_urgent_treatments():
             'total_overdue': len(overdue_treatments)
         })
     except Exception as e:
-        return jsonify({'error': f'Failed to get urgent treatments: {str(e)}'}), 500
+        app.logger.error(f'Failed to get urgent treatments: {str(e)}')
+        return jsonify({'error': 'Failed to get urgent treatments'}), 500
 
 # POST endpoints for adding new data
 @app.route('/health_records', methods=['POST'])
@@ -185,7 +188,8 @@ def add_health_record():
         record_id = execute_write(_insert)
         return jsonify({'success': True,'message': 'Health record added successfully','record_id': record_id}), 201
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error adding health record: {str(e)}'}), 400
+        app.logger.error(f'Error adding health record: {str(e)}')
+        return jsonify({'success': False,'message': 'Error adding health record'}), 400
 
 @app.route('/treatment', methods=['POST'])
 def add_treatment():
@@ -234,7 +238,8 @@ def add_treatment():
         treatment_id = execute_write(_insert)
         return jsonify({'success': True,'message': 'Treatment added successfully','treatment_id': treatment_id}), 201
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error adding treatment: {str(e)}'}), 400
+        app.logger.error(f'Error adding treatment: {str(e)}')
+        return jsonify({'success': False,'message': 'Error adding treatment'}), 400
 
 @app.route('/doctors', methods=['POST'])
 def add_doctor():
@@ -273,7 +278,8 @@ def add_doctor():
         doctor_id = execute_write(_insert)
         return jsonify({'success': True,'message': 'Doctor added successfully','doctor_id': doctor_id}), 201
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error adding doctor: {str(e)}'}), 400
+        app.logger.error(f'Error adding doctor: {str(e)}')
+        return jsonify({'success': False,'message': 'Error adding doctor'}), 400
 
 @app.route('/users', methods=['POST'])
 def add_user():
@@ -301,7 +307,8 @@ def add_user():
         user_id = execute_write(_insert)
         return jsonify({'success': True,'message': 'User registered successfully','user_id': user_id}), 201
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error registering user: {str(e)}'}), 400
+        app.logger.error(f'Error registering user: {str(e)}')
+        return jsonify({'success': False,'message': 'Error registering user'}), 400
 
 # DELETE endpoints for removing data
 @app.route('/health_records/<int:record_id>', methods=['DELETE'])
@@ -320,7 +327,8 @@ def delete_health_record(record_id):
             return jsonify({'success': False,'message': 'Health record not found'}), 404
         return jsonify({'success': True,'message': 'Health record deleted successfully'}), 200
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error deleting health record: {str(e)}'}), 400
+        app.logger.error(f'Error deleting health record: {str(e)}')
+        return jsonify({'success': False,'message': 'Error deleting health record'}), 400
 
 @app.route('/treatment/<int:treatment_id>', methods=['DELETE'])
 def delete_treatment(treatment_id):
@@ -337,7 +345,8 @@ def delete_treatment(treatment_id):
             return jsonify({'success': False,'message': 'Treatment not found'}), 404
         return jsonify({'success': True,'message': 'Treatment deleted successfully'}), 200
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error deleting treatment: {str(e)}'}), 400
+        app.logger.error(f'Error deleting treatment: {str(e)}')
+        return jsonify({'success': False,'message': 'Error deleting treatment'}), 400
 
 @app.route('/doctors/<int:doctor_id>', methods=['DELETE'])
 def delete_doctor(doctor_id):
@@ -399,7 +408,8 @@ def delete_doctor(doctor_id):
             }
         }), 200
     except Exception as e:
-        return jsonify({'success': False,'message': f'Error deleting doctor: {str(e)}'}), 400
+        app.logger.error(f'Error deleting doctor: {str(e)}')
+        return jsonify({'success': False,'message': 'Error deleting doctor'}), 400
 
 # ============== UPDATE ENDPOINTS ==============
 @app.route('/doctors/<int:doctor_id>', methods=['PUT'])
@@ -439,7 +449,8 @@ def update_doctor(doctor_id):
         
         return jsonify({'success': True, 'message': 'Doctor updated successfully'}), 200
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error updating doctor: {str(e)}'}), 400
+        app.logger.error(f'Error updating doctor: {str(e)}')
+        return jsonify({'success': False, 'message': 'Error updating doctor'}), 400
 
 @app.route('/health_records/<int:record_id>', methods=['PUT'])
 def update_health_record(record_id):
@@ -478,7 +489,8 @@ def update_health_record(record_id):
         
         return jsonify({'success': True, 'message': 'Health record updated successfully'}), 200
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error updating health record: {str(e)}'}), 400
+        app.logger.error(f'Error updating health record: {str(e)}')
+        return jsonify({'success': False, 'message': 'Error updating health record'}), 400
 
 @app.route('/treatment/<int:treatment_id>', methods=['PUT'])
 def update_treatment(treatment_id):
@@ -516,7 +528,8 @@ def update_treatment(treatment_id):
         
         return jsonify({'success': True, 'message': 'Treatment updated successfully'}), 200
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error updating treatment: {str(e)}'}), 400
+        app.logger.error(f'Error updating treatment: {str(e)}')
+        return jsonify({'success': False, 'message': 'Error updating treatment'}), 400
 
 # ============== AI HEALTH INSIGHTS ENDPOINT ==============
 @app.route('/api/health-insights/<int:user_id>', methods=['GET'])
@@ -745,7 +758,7 @@ Output ONLY valid JSON in this exact format:
         app.logger.error(f"Error generating health insights: {str(e)}")
         return jsonify({
             'success': False,
-            'message': f'Error generating insights: {str(e)}',
+            'message': 'Error generating insights',
             'insights': {
                 'summary': 'Unable to generate insights at this time.',
                 'trends': [],
@@ -896,7 +909,7 @@ Output: {{"doctor_id": 2, "doctor_name": "Williams", "diagnosis": "Diabetes chec
         app.logger.error(f"Error parsing voice record: {str(e)}")
         return jsonify({
             'success': False,
-            'message': f'Error processing voice input: {str(e)}'
+            'message': 'Error processing voice input'
         }), 500
 
 # ============== VOICE-TO-DOCTOR AI PARSING ENDPOINT ==============
@@ -1085,9 +1098,11 @@ Return ONLY the JSON. No explanations.
         app.logger.error(f"Error parsing voice doctor: {str(e)}")
         return jsonify({
             'success': False,
-            'message': f'Error processing voice input: {str(e)}'
+            'message': 'Error processing voice input'
         }), 500
 
 if __name__ == '__main__':
     # Run on localhost only
-    app.run(host='127.0.0.1', port=PORT, debug=True)
+    # Debug mode should only be enabled in development
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='127.0.0.1', port=PORT, debug=debug_mode)
