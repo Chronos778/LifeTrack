@@ -677,18 +677,24 @@ Output ONLY valid JSON in this exact format:
         # Try each model until one works
         for model_name in HUGGINGFACE_MODELS:
             try:
+                app.logger.info(f"Trying model: {model_name}")
                 payload["model"] = model_name
                 hf_response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload, timeout=60)
                 
+                app.logger.info(f"Response status: {hf_response.status_code}")
                 if hf_response.status_code == 200:
+                    app.logger.info(f"Success with model: {model_name}")
                     break  # Success! Use this model
                 else:
-                    last_error = hf_response.text
+                    last_error = f"Status {hf_response.status_code}: {hf_response.text}"
+                    app.logger.warning(f"Model {model_name} failed: {last_error}")
             except Exception as e:
                 last_error = str(e)
+                app.logger.error(f"Exception with model {model_name}: {last_error}")
                 continue
         
         if not hf_response or hf_response.status_code != 200:
+            app.logger.error(f"All models failed. Last error: {last_error}")
             raise Exception(f"All Hugging Face models failed. Last error: {last_error}")
         
         # Parse AI response from Hugging Face (OpenAI format)
