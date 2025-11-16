@@ -124,10 +124,9 @@ Complete guide to all features available in LifeTrack Personal Health Record Man
 
 **Technical Features**
 - Multi-model fallback system:
-  1. Gemini 2.0 Flash Exp (fastest)
-  2. Gemini 2.0 Flash (stable)
-  3. Gemini 1.5 Flash (reliable)
-  4. Gemini 1.5 Pro (most capable)
+  1. Mistral-7B-Instruct-v0.2 (reliable)
+  2. Llama-3.2-3B-Instruct (fast)
+  3. Zephyr-7B-Beta (robust)
 - 60-second analysis timeout
 - Automatic retry logic
 - Error handling with user feedback
@@ -239,7 +238,7 @@ Complete guide to all features available in LifeTrack Personal Health Record Man
 - Error handling for microphone access
 
 **AI Parsing**
-- Google Gemini API integration
+- Hugging Face Inference API integration
 - Structured JSON output
 - Field validation
 - Default value assignment

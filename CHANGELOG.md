@@ -5,6 +5,46 @@ All notable changes to LifeTrack will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-11-16
+
+### Changed - AI Provider Migration 🚀
+
+#### Switched to Hugging Face Inference API
+- **Migrated from Google Gemini to Hugging Face** for AI-powered features
+  - More cost-effective and open-source friendly
+  - Access to multiple state-of-the-art models
+  - Better model transparency and control
+  
+- **New AI Models**:
+  - Primary: Mistral-7B-Instruct-v0.2 (reliable, powerful)
+  - Backup: Llama-3.2-3B-Instruct (fast alternative)
+  - Fallback: Zephyr-7B-Beta (robust option)
+  
+- **Updated API Integration**:
+  - Using OpenAI-compatible chat completions endpoint
+  - Router URL: `https://router.huggingface.co/v1/chat/completions`
+  - Improved error handling and model fallback
+  - Increased timeout to 60 seconds for better reliability
+
+#### Updated Configuration
+- Replaced `GEMINI_API_KEY` with `HUGGINGFACE_API_KEY`
+- Updated `.env.example` with new API key format
+- Removed `google-generativeai` dependency
+- Updated `requirements.txt` to use `requests` library
+
+#### Documentation Updates
+- Updated README.md with Hugging Face integration details
+- Revised AI_FEATURES.md with new models and setup instructions
+- Updated REPOSITORY_STATUS.md with current tech stack
+- Modified FEATURES.md to reflect new AI provider
+- All references to Google Gemini replaced with Hugging Face
+
+### Technical Details
+- Maintained backward compatibility with existing API endpoints
+- Same response format for seamless frontend integration
+- No changes required to frontend code
+- All AI features continue to work as expected
+
 ## [2.0.0] - 2025-11-05
 
 ### Added - AI-Powered Features 🤖
@@ -12,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Voice-to-Text System
 - **Voice-to-Record Modal**: Speak naturally to add health records
   - Real-time speech recognition using Web Speech API
-  - AI-powered parsing with Google Gemini
+  - AI-powered parsing with Hugging Face AI
   - Extracts doctor, diagnosis, date, medication, and dosage
   - Editable preview before saving
   - Accessible from Home, Records pages
@@ -24,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dark glassmorphism UI design
   
 #### AI Health Insights
-- Multi-model fallback system (Gemini 2.0 Flash Exp, 2.0 Flash, 1.5 Flash, 1.5 Pro)
+- Multi-model fallback system (Mistral-7B, Llama-3.2, Zephyr-7B)
 - Personalized health analysis and recommendations
 - Trend detection and pattern recognition
 - Statistics dashboard with health metrics
@@ -141,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Dependencies
 - Updated to use Web Speech Recognition API
-- Google Gemini API integration
+- Hugging Face Inference API integration
 - React 18.2.0 with modern hooks
 - Flask 3.0.0 with CORS support
 

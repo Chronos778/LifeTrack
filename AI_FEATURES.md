@@ -2,7 +2,7 @@
 
 ## Overview
 
-LifeTrack integrates **Google Gemini AI** to provide intelligent health insights and personalized recommendations based on your medical history. This feature analyzes your health records, treatments, and doctor visits to identify patterns and provide actionable health advice.
+LifeTrack integrates **Hugging Face Inference API** with state-of-the-art open-source AI models (Mistral, Llama, Zephyr) to provide intelligent health insights and personalized recommendations based on your medical history. This feature analyzes your health records, treatments, and doctor visits to identify patterns and provide actionable health advice.
 
 ---
 
@@ -46,7 +46,7 @@ LifeTrack integrates **Google Gemini AI** to provide intelligent health insights
 1. User Request → /api/health-insights/<user_id>
 2. Fetch Data → Query SQLite for records, treatments, doctors
 3. Format Data → Structure health information for AI
-4. AI Analysis → Send to Google Gemini API
+4. AI Analysis → Send to Hugging Face Inference API
 5. Parse Response → Extract insights from AI output
 6. Return JSON → Send structured data to frontend
 ```
@@ -96,14 +96,14 @@ LifeTrack integrates **Google Gemini AI** to provide intelligent health insights
 
 **Key Components:**
 - Database queries for user's health data
-- Gemini API integration with fallback models
+- Hugging Face API integration with fallback models (Mistral, Llama, Zephyr)
 - JSON response formatting
 - Error handling and logging
 
 **AI Models Used (in priority order):**
-1. **gemini-2.5-flash** - Primary (fastest, 1M tokens)
-2. **gemini-2.0-flash** - Backup (stable alternative)
-3. **gemini-2.5-pro** - Premium (deepest analysis)
+1. **mistralai/Mistral-7B-Instruct-v0.2** - Primary (reliable, powerful)
+2. **meta-llama/Llama-3.2-3B-Instruct** - Backup (fast alternative)
+3. **HuggingFaceH4/zephyr-7b-beta** - Fallback (robust option)
 
 ### Frontend (React)
 
@@ -174,7 +174,7 @@ provider for medical decisions.
 - Health data never leaves your secure backend
 - API key stored server-side only
 - HTTPS encryption for API communication
-- No data retained by Google Gemini
+- No data retained by Hugging Face (inference only)
 
 ### User Privacy
 - Insights generated per user (isolated data)
@@ -209,8 +209,8 @@ provider for medical decisions.
 ## 📈 Performance
 
 ### Speed Optimization
-- Gemini 2.5 Flash model (fastest)
-- Request timeout: 30 seconds
+- Mistral-7B-Instruct model (fast and reliable)
+- Request timeout: 60 seconds
 - Fallback to alternative models
 - Cached statistics reduce API calls
 
@@ -228,20 +228,20 @@ provider for medical decisions.
 
 ```bash
 cd backend
-pip install google-generativeai==0.3.1
+pip install requests==2.31.0
 ```
 
 ### 2. Configure API Key
 
 **Option A: Environment Variable (Recommended)**
 ```bash
-export GEMINI_API_KEY="your-api-key-here"
+export HUGGINGFACE_API_KEY="your-api-key-here"
 ```
 
 **Option B: Direct in Code**
 ```python
 # backend/app.py
-GEMINI_API_KEY = "your-api-key-here"
+HUGGINGFACE_API_KEY = "your-api-key-here"
 ```
 
 ### 3. Test the Endpoint
@@ -264,10 +264,10 @@ curl http://localhost:5000/api/health-insights/1
 ### Issue: "404 Model Not Found"
 **Solution:** Update to correct model name in `backend/app.py`:
 ```python
-GEMINI_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash", 
-    "gemini-2.5-pro"
+HUGGINGFACE_MODELS = [
+    "mistralai/Mistral-7B-Instruct-v0.2",
+    "meta-llama/Llama-3.2-3B-Instruct", 
+    "HuggingFaceH4/zephyr-7b-beta"
 ]
 ```
 
@@ -287,7 +287,7 @@ GEMINI_MODELS = [
 
 ### Issue: "Slow response time"
 **Solutions:**
-- Switch to gemini-2.5-flash (fastest model)
+- Models may need warm-up time on first request
 - Reduce data sent to AI (limit records)
 - Add request timeout handling
 - Implement caching for repeated requests
@@ -365,12 +365,12 @@ GEMINI_MODELS = [
 ## 📚 Resources
 
 ### Documentation
-- [Google Gemini API Docs](https://ai.google.dev/docs)
+- [Hugging Face Inference API Docs](https://huggingface.co/docs/api-inference/index)
 - [Flask Documentation](https://flask.palletsprojects.com/)
 - [React Documentation](https://react.dev/)
 
 ### API Keys
-- [Get Gemini API Key](https://makersuite.google.com/app/apikey)
+- [Get Hugging Face API Key](https://huggingface.co/settings/tokens)
 
 ### Support
 - GitHub Issues: [Report bugs or request features]
@@ -381,7 +381,7 @@ GEMINI_MODELS = [
 
 ## 🙏 Acknowledgments
 
-- **Google Gemini Team** - For providing powerful AI capabilities
+- **Hugging Face Team** - For providing open-source AI infrastructure
 - **LifeTrack Development Team** - For building this integration
 - **Healthcare Community** - For feedback and testing
 

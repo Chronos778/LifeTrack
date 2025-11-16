@@ -11,13 +11,15 @@ import json
 # Import our advanced data structures
 from data_structures import health_aggregator, HealthRecord, Doctor, Severity
 
-# Configure Gemini AI
-GEMINI_API_KEY = "AIzaSyB-rgGfF6tPBIYRlPSVQPcl35tbieQNvOI"
-# Use the actual available models from the API
-GEMINI_MODELS = [
-    "gemini-2.5-flash",  # Stable version, fast
-    "gemini-2.0-flash",  # Alternative stable version
-    "gemini-2.5-pro"     # Most capable but slower
+# Configure Hugging Face Inference API
+HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY', 'your-huggingface-api-key-here')
+# Use Hugging Face Router endpoint (OpenAI-compatible)
+HUGGINGFACE_API_URL = "https://router.huggingface.co/v1/chat/completions"
+# Alternative models to try if primary fails
+HUGGINGFACE_MODELS = [
+    "mistralai/Mistral-7B-Instruct-v0.2",  # Reliable and powerful
+    "meta-llama/Llama-3.2-3B-Instruct",  # Fast alternative
+    "HuggingFaceH4/zephyr-7b-beta"  # Good fallback
 ]
 
 app = Flask(__name__)
@@ -500,7 +502,7 @@ def update_treatment(treatment_id):
 # ============== AI HEALTH INSIGHTS ENDPOINT ==============
 @app.route('/api/health-insights/<int:user_id>', methods=['GET'])
 def get_health_insights(user_id):
-    """Generate personalized health insights using Gemini AI"""
+    """Generate personalized health insights using Hugging Face AI"""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -623,39 +625,43 @@ Output ONLY valid JSON in this exact format:
 }}
         """
         
-        # Generate insights using Gemini AI v1beta API - try multiple models
-        headers = {'Content-Type': 'application/json'}
+        # Generate insights using Hugging Face Router API (OpenAI-compatible)
+        headers = {
+            'Authorization': f'Bearer {HUGGINGFACE_API_KEY}',
+            'Content-Type': 'application/json'
+        }
         payload = {
-            "contents": [{
-                "parts": [{
-                    "text": health_summary
-                }]
-            }]
+            "model": HUGGINGFACE_MODELS[0],
+            "messages": [
+                {"role": "user", "content": health_summary}
+            ],
+            "max_tokens": 800,
+            "temperature": 0.3
         }
         
-        gemini_response = None
+        hf_response = None
         last_error = None
         
         # Try each model until one works
-        for model_name in GEMINI_MODELS:
+        for model_name in HUGGINGFACE_MODELS:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
-                gemini_response = requests.post(url, headers=headers, json=payload, timeout=30)
+                payload["model"] = model_name
+                hf_response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload, timeout=60)
                 
-                if gemini_response.status_code == 200:
+                if hf_response.status_code == 200:
                     break  # Success! Use this model
                 else:
-                    last_error = gemini_response.text
+                    last_error = hf_response.text
             except Exception as e:
                 last_error = str(e)
                 continue
         
-        if not gemini_response or gemini_response.status_code != 200:
-            raise Exception(f"All Gemini models failed. Last error: {last_error}")
+        if not hf_response or hf_response.status_code != 200:
+            raise Exception(f"All Hugging Face models failed. Last error: {last_error}")
         
-        # Parse AI response
-        response_data = gemini_response.json()
-        ai_text = response_data['candidates'][0]['content']['parts'][0]['text']
+        # Parse AI response from Hugging Face (OpenAI format)
+        response_data = hf_response.json()
+        ai_text = response_data['choices'][0]['message']['content']
         
         # Try to extract JSON from response
         import json
@@ -732,7 +738,7 @@ Output ONLY valid JSON in this exact format:
 # ============== VOICE-TO-RECORD AI PARSING ENDPOINT ==============
 @app.route('/api/parse-voice-record', methods=['POST'])
 def parse_voice_record():
-    """Parse voice input and extract medical record information using Gemini AI"""
+    """Parse voice input and extract medical record information using Hugging Face AI"""
     try:
         data = request.get_json()
         voice_text = data.get('text', '')
@@ -793,35 +799,39 @@ Input: "visited Dr. Williams for diabetes check, prescribed metformin 850 millig
 Output: {{"doctor_id": 2, "doctor_name": "Williams", "diagnosis": "Diabetes check-up", "date": "2025-11-05", "medication": "Metformin", "dosage": "850mg once daily", "follow_up_date": null, "confidence": "High"}}
 """
         
-        # Call Gemini AI
-        headers = {'Content-Type': 'application/json'}
+        # Call Hugging Face Router API (OpenAI-compatible)
+        headers = {
+            'Authorization': f'Bearer {HUGGINGFACE_API_KEY}',
+            'Content-Type': 'application/json'
+        }
         payload = {
-            "contents": [{
-                "parts": [{
-                    "text": parse_prompt
-                }]
-            }]
+            "model": HUGGINGFACE_MODELS[0],
+            "messages": [
+                {"role": "user", "content": parse_prompt}
+            ],
+            "max_tokens": 500,
+            "temperature": 0.2
         }
         
-        gemini_response = None
+        hf_response = None
         
         # Try each model
-        for model_name in GEMINI_MODELS:
+        for model_name in HUGGINGFACE_MODELS:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
-                gemini_response = requests.post(url, headers=headers, json=payload, timeout=30)
+                payload["model"] = model_name
+                hf_response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload, timeout=60)
                 
-                if gemini_response.status_code == 200:
+                if hf_response.status_code == 200:
                     break
             except Exception as e:
                 continue
         
-        if not gemini_response or gemini_response.status_code != 200:
+        if not hf_response or hf_response.status_code != 200:
             raise Exception("AI parsing failed")
         
-        # Parse AI response
-        response_data = gemini_response.json()
-        ai_text = response_data['candidates'][0]['content']['parts'][0]['text']
+        # Parse AI response from Hugging Face (OpenAI format)
+        response_data = hf_response.json()
+        ai_text = response_data['choices'][0]['message']['content']
         
         # Extract JSON from response
         import json
@@ -873,7 +883,7 @@ Output: {{"doctor_id": 2, "doctor_name": "Williams", "diagnosis": "Diabetes chec
 # ============== VOICE-TO-DOCTOR AI PARSING ENDPOINT ==============
 @app.route('/api/parse-voice-doctor', methods=['POST'])
 def parse_voice_doctor():
-    """Parse voice input and extract doctor information using Gemini AI"""
+    """Parse voice input and extract doctor information using Hugging Face AI"""
     try:
         data = request.get_json()
         voice_text = data.get('text', '')
@@ -926,29 +936,34 @@ Return ONLY the JSON. No explanations.
         print(f"📝 Voice Text: {voice_text}")
         print(f"👤 User ID: {user_id}")
         
-        # Try multiple Gemini models
-        models_to_try = ['gemini-2.0-flash-exp', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']
+        # Try Hugging Face models
         parsed_data = None
         last_error = None
         
-        for model_name in models_to_try:
+        headers = {
+            'Authorization': f'Bearer {HUGGINGFACE_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        payload = {
+            "model": HUGGINGFACE_MODELS[0],
+            "messages": [
+                {"role": "user", "content": parse_prompt}
+            ],
+            "max_tokens": 500,
+            "temperature": 0.2
+        }
+        
+        for model_name in HUGGINGFACE_MODELS:
             try:
                 print(f"\n🤖 Trying model: {model_name}")
-                model = genai.GenerativeModel(model_name)
+                payload["model"] = model_name
+                response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload, timeout=60)
                 
-                response = model.generate_content(
-                    parse_prompt,
-                    generation_config={
-                        'temperature': 0.2,
-                        'top_p': 0.8,
-                        'top_k': 40,
-                        'max_output_tokens': 512,
-                    },
-                    request_options={'timeout': 30}
-                )
-                
-                if response and response.text:
-                    response_text = response.text.strip()
+                if response and response.status_code == 200:
+                    response_data = response.json()
+                    # Extract generated text from OpenAI format
+                    response_text = response_data['choices'][0]['message']['content'].strip()
+                    
                     print(f"📤 AI Response: {response_text}")
                     
                     # Try to extract JSON from markdown code blocks

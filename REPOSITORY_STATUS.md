@@ -10,7 +10,7 @@ This repository contains a fully functional Personal Health Record Management Sy
 - **Frontend**: React 18.2.0 with modern UI/UX
 - **Backend**: Python Flask with SQLite database
 - **Mobile**: Android APK build support via Capacitor
-- **AI Integration**: Google Gemini API for voice and insights
+- **AI Integration**: Hugging Face Inference API for voice and insights
 
 ### ✅ Key Features
 1. **CRUD Operations**: Full create, read, update, delete for all entities
@@ -46,7 +46,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
-# Add your GEMINI_API_KEY to .env
+# Add your HUGGINGFACE_API_KEY to .env
 python app.py
 
 # Frontend setup (new terminal)
@@ -105,7 +105,7 @@ lifetrack/
 - Python 3.8+
 - Flask 3.0.0
 - SQLite (with WAL mode for concurrency)
-- Google Gemini API
+- Hugging Face Inference API
 - Flask-CORS
 
 ### Mobile
@@ -117,7 +117,7 @@ lifetrack/
 
 ### Backend (.env)
 ```env
-GEMINI_API_KEY=your_gemini_api_key
+HUGGINGFACE_API_KEY=your_huggingface_api_key
 FLASK_ENV=development
 FLASK_DEBUG=True
 SECRET_KEY=your_secret_key
@@ -218,7 +218,7 @@ cd android
 ### Current
 - Fast loading times
 - Efficient database queries
-- AI response: 5-30 seconds (Gemini API)
+- AI response: 5-30 seconds (Hugging Face API)
 - Voice parsing: 2-10 seconds
 
 ### Optimizations
@@ -261,7 +261,7 @@ MIT License - see LICENSE file
 ### Technologies Used
 - React.js - Facebook
 - Flask - Pallets
-- Google Gemini AI - Google
+- Hugging Face Inference API - Hugging Face
 - Capacitor - Ionic
 - Web Speech API - W3C Standard
 

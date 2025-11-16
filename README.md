@@ -5,7 +5,7 @@ A modern, AI-powered web application for managing personal health records, built
 ## 🌟 Features
 
 ### Core Features
-- **🤖 AI Health Insights**: Powered by Google Gemini 2.5 - Get personalized health analysis, trends, and recommendations
+- **🤖 AI Health Insights**: Powered by Hugging Face AI (Mistral-7B, Llama-3.2) - Get personalized health analysis, trends, and recommendations
 - **🎤 Voice-to-Text Entry**: Speak naturally to add health records and doctors - AI automatically extracts and structures data
 - **✏️ Full CRUD Operations**: Create, Read, Update, and Delete for all records, doctors, and treatments
 - **🌓 Light/Dark Theme**: Beautiful dual theme system with smooth transitions and persistent user preference
@@ -18,7 +18,7 @@ A modern, AI-powered web application for managing personal health records, built
 - **📱 Mobile App**: Android APK available via Capacitor
 
 ### AI-Powered Features
-- **Smart Health Analysis**: Multi-model fallback system (Gemini 2.0 Flash Exp, 2.0 Flash, 1.5 Flash, 1.5 Pro)
+- **Smart Health Analysis**: Multi-model fallback system (Mistral-7B, Llama-3.2, Zephyr-7B)
 - **Voice-to-Record**: Speak your health information naturally, AI parses and categorizes automatically
 - **Voice-to-Doctor**: Add new doctors by speaking their details
 - **Intelligent Data Extraction**: AI separates medication names from dosages, identifies doctors, diagnoses, and dates
@@ -36,7 +36,7 @@ A modern, AI-powered web application for managing personal health records, built
 - **Python Flask** - RESTful API server
 - **SQLite** - Lightweight database
 - **Flask-CORS** - Cross-origin resource sharing
-- **Google Gemini AI** - AI-powered health insights and analysis
+- **Hugging Face Inference API** - AI-powered health insights and analysis
 
 ### Mobile
 - **Capacitor** - Cross-platform mobile app framework
@@ -108,8 +108,8 @@ lifetrack/
    # Create .env file in backend directory
    cp .env.example .env
    
-   # Add your Google Gemini API key:
-   # GEMINI_API_KEY=your_api_key_here
+   # Add your Hugging Face API key:
+   # HUGGINGFACE_API_KEY=your_api_key_here
    ```
 
    Get your free API key from: https://makersuite.google.com/app/apikey
@@ -201,16 +201,16 @@ For detailed mobile build instructions, see `MOBILE_BUILD_INSTRUCTIONS.md`.
 
 ## 🤖 AI Features
 
-### Google Gemini Integration
+### Hugging Face AI Integration
 
-LifeTrack uses Google's Gemini AI to provide intelligent health insights and voice-powered data entry:
+LifeTrack uses Hugging Face's Inference API with state-of-the-art open-source models to provide intelligent health insights and voice-powered data entry:
 
 #### AI Health Insights
 - **Personalized Health Summary**: AI analyzes your complete medical history
 - **Trend Detection**: Identifies patterns in doctor visits, treatments, and diagnoses
 - **Smart Recommendations**: Actionable health advice based on your records
 - **Statistics Dashboard**: Visual display of health metrics and activity
-- **Multi-Model Fallback**: Automatically tries Gemini 2.0 Flash Exp → 2.0 Flash → 1.5 Flash → 1.5 Pro
+- **Multi-Model Fallback**: Automatically tries Mistral-7B-Instruct → Llama-3.2-3B-Instruct → Zephyr-7B-Beta
 
 #### Voice-to-Text Features
 - **Voice-to-Record**: Speak naturally about your health - AI extracts doctor, diagnosis, date, medication, and dosage
@@ -231,16 +231,16 @@ LifeTrack uses Google's Gemini AI to provide intelligent health insights and voi
 ### How It Works
 
 1. User health data (records, treatments, doctor visits) is securely sent to the backend
-2. Backend formats data into a structured prompt for Gemini AI
-3. Gemini analyzes patterns, trends, and generates personalized insights
+2. Backend formats data into a structured prompt for Hugging Face AI
+3. AI models analyze patterns, trends, and generate personalized insights
 4. Results are displayed in a beautiful glassmorphic UI component
 5. Users can refresh insights anytime to get updated analysis
 
 ### AI Models Used
 
-- **Primary**: Gemini 2.5 Flash (Fast, efficient, 1M token context)
-- **Backup**: Gemini 2.0 Flash (Alternative stable version)
-- **Premium**: Gemini 2.5 Pro (Most capable, deeper analysis)
+- **Primary**: Mistral-7B-Instruct-v0.2 (Reliable, powerful, open-source)
+- **Backup**: Llama-3.2-3B-Instruct (Fast, efficient alternative)
+- **Fallback**: Zephyr-7B-Beta (Robust fallback option)
 
 ## 🎨 UI/UX Features
 
@@ -353,7 +353,7 @@ If you encounter any issues or have questions:
 
 ## 📈 Roadmap
 
-- [x] **AI Health Insights** - Powered by Google Gemini ✅
+- [x] **AI Health Insights** - Powered by Hugging Face ✅
 - [x] **Voice-to-Text Entry** - Natural speech input for records and doctors ✅
 - [x] **Full CRUD Operations** - Complete edit/delete functionality ✅
 - [x] **Light/Dark Theme** - Beautiful dual theme system ✅
