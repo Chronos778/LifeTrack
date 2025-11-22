@@ -46,6 +46,13 @@ const Navbar = ({ user, onLogout }) => {
             <span className="nav-icon">💊</span>
             <span className="nav-text">Treatments</span>
           </Link>
+          <Link 
+            to="/chatbot" 
+            className={`nav-link ${location.pathname === '/chatbot' ? 'active' : ''}`}
+          >
+            <span className="nav-icon">🤖</span>
+            <span className="nav-text">Chatbot</span>
+          </Link>
         </div>
         
         <div className="nav-item nav-actions">

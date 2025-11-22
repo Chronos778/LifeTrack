@@ -1107,6 +1107,178 @@ Return ONLY the JSON. No explanations.
             'message': 'Error processing voice input'
         }), 500
 
+@app.route('/chatbot/query', methods=['POST'])
+def chatbot_query():
+    """Handle chatbot queries based on user's medical data"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        user_id = data.get('user_id')
+        question = data.get('question', '').strip()
+        
+        if not user_id or not question:
+            return jsonify({'success': False, 'message': 'user_id and question are required'}), 400
+        
+        # Fetch user's medical data
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Get user info
+            cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+            user = cursor.fetchone()
+            if not user:
+                return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+            # Get health records with doctor info
+            cursor.execute("""
+                SELECT hr.*, d.name as doctor_name, d.specialization
+                FROM health_records hr
+                LEFT JOIN doctors d ON hr.doctor_id = d.doctor_id
+                WHERE hr.user_id = ?
+                ORDER BY hr.record_date DESC
+            """, (user_id,))
+            records = [dict(row) for row in cursor.fetchall()]
+            
+            # Get treatments
+            cursor.execute("""
+                SELECT t.*, hr.diagnosis, hr.record_date
+                FROM treatment t
+                JOIN health_records hr ON t.record_id = hr.record_id
+                WHERE hr.user_id = ?
+                ORDER BY t.follow_up_date DESC
+            """, (user_id,))
+            treatments = [dict(row) for row in cursor.fetchall()]
+            
+            # Get doctors
+            cursor.execute("""
+                SELECT DISTINCT d.*
+                FROM doctors d
+                JOIN health_records hr ON d.doctor_id = hr.doctor_id
+                WHERE hr.user_id = ?
+            """, (user_id,))
+            doctors = [dict(row) for row in cursor.fetchall()]
+        
+        # Build context for the chatbot
+        user_context = f"""
+PATIENT INFORMATION:
+- Name: {user['name']}
+- Age: {user['age']} years
+- Gender: {user['gender']}
+
+MEDICAL HISTORY ({len(records)} records):
+"""
+        for record in records[:10]:  # Last 10 records
+            user_context += f"• {record['record_date']}: {record['diagnosis']}"
+            if record.get('doctor_name'):
+                user_context += f" (Dr. {record['doctor_name']} - {record['specialization']})"
+            user_context += "\n"
+        
+        if treatments:
+            user_context += f"\nCURRENT TREATMENTS ({len(treatments)} active):\n"
+            for treatment in treatments[:10]:
+                user_context += f"• {treatment['medication']} for {treatment['diagnosis']}"
+                if treatment.get('procedure'):
+                    user_context += f" - {treatment['procedure']}"
+                if treatment.get('follow_up_date'):
+                    user_context += f" | Follow-up: {treatment['follow_up_date']}"
+                user_context += "\n"
+        
+        if doctors:
+            user_context += f"\nHEALTHCARE PROVIDERS:\n"
+            for doctor in doctors:
+                user_context += f"• Dr. {doctor['name']} - {doctor['specialization']}"
+                if doctor.get('contact_number'):
+                    user_context += f" | {doctor['contact_number']}"
+                user_context += "\n"
+        
+        # Create chatbot prompt
+        chatbot_prompt = f"""You are a helpful medical assistant chatbot for LifeTrack, a personal health records system.
+
+{user_context}
+
+PATIENT QUESTION:
+{question}
+
+INSTRUCTIONS:
+- Answer based ONLY on the patient's medical data provided above
+- Be helpful, empathetic, and clear
+- If the question cannot be answered with the available data, politely say so
+- Do NOT provide medical diagnoses or treatment advice - only reference existing records
+- Encourage the patient to consult their healthcare provider for medical decisions
+- Keep responses concise (2-4 sentences) unless more detail is clearly needed
+
+Respond in a natural, conversational tone:"""
+
+        # Call Hugging Face Inference API
+        headers = {
+            'Authorization': f'Bearer {HUGGINGFACE_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            "model": HUGGINGFACE_MODELS[0],
+            "messages": [
+                {"role": "system", "content": "You are a helpful medical records assistant."},
+                {"role": "user", "content": chatbot_prompt}
+            ],
+            "max_tokens": 500,
+            "temperature": 0.7
+        }
+        
+        hf_response = None
+        last_error = None
+        
+        # Try each model until one works
+        for model_name in HUGGINGFACE_MODELS:
+            try:
+                app.logger.info(f"Chatbot trying model: {model_name}")
+                payload["model"] = model_name
+                hf_response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload, timeout=30)
+                
+                if hf_response.status_code == 200:
+                    app.logger.info(f"Chatbot success with model: {model_name}")
+                    break
+                else:
+                    last_error = f"Status {hf_response.status_code}: {hf_response.text}"
+                    app.logger.warning(f"Model {model_name} failed: {last_error}")
+            except Exception as e:
+                last_error = str(e)
+                app.logger.error(f"Exception with model {model_name}: {last_error}")
+                continue
+        
+        if not hf_response or hf_response.status_code != 200:
+            # Fallback response
+            fallback_response = f"I'm having trouble connecting to the AI service right now. However, I can tell you that you have {len(records)} health records and {len(treatments)} treatments in your history. Please try again in a moment or contact your healthcare provider directly."
+            return jsonify({
+                'success': True,
+                'response': fallback_response,
+                'fallback': True
+            }), 200
+        
+        # Parse AI response
+        result = hf_response.json()
+        ai_response = result.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
+        
+        if not ai_response:
+            ai_response = "I apologize, but I couldn't generate a response. Please try rephrasing your question."
+        
+        return jsonify({
+            'success': True,
+            'response': ai_response,
+            'records_count': len(records),
+            'treatments_count': len(treatments),
+            'doctors_count': len(doctors)
+        }), 200
+        
+    except Exception as e:
+        app.logger.error(f'Chatbot error: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': f'Error processing chatbot query: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     # Run on localhost only
     # Debug mode should only be enabled in development

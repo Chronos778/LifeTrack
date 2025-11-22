@@ -6,6 +6,7 @@ A modern, AI-powered web application for managing personal health records, built
 
 ### Core Features
 - **🤖 AI Health Insights**: Powered by Hugging Face AI (Mistral-7B, Llama-3.2) - Get personalized health analysis, trends, and recommendations
+- **💬 AI Chatbot**: Interactive health assistant that answers questions based on your medical data
 - **🎤 Voice-to-Text Entry**: Speak naturally to add health records and doctors - AI automatically extracts and structures data
 - **✏️ Full CRUD Operations**: Create, Read, Update, and Delete for all records, doctors, and treatments
 - **🌓 Light/Dark Theme**: Beautiful dual theme system with smooth transitions and persistent user preference
@@ -19,6 +20,7 @@ A modern, AI-powered web application for managing personal health records, built
 
 ### AI-Powered Features
 - **Smart Health Analysis**: Multi-model fallback system (Mistral-7B, Llama-3.2, Zephyr-7B)
+- **Medical Chatbot**: Ask questions about your diagnoses, medications, treatments, and appointments
 - **Voice-to-Record**: Speak your health information naturally, AI parses and categorizes automatically
 - **Voice-to-Doctor**: Add new doctors by speaking their details
 - **Intelligent Data Extraction**: AI separates medication names from dosages, identifies doctors, diagnoses, and dates
@@ -108,6 +110,7 @@ lifetrack/
    - Flask-CORS 4.0.0
    - requests 2.31.0
    - python-dotenv 1.0.0
+   - huggingface-hub 0.20.0
 
 4. **Set up environment variables:**
    ```bash
@@ -218,6 +221,21 @@ LifeTrack uses Hugging Face's Inference API with state-of-the-art open-source mo
 - **Statistics Dashboard**: Visual display of health metrics and activity
 - **Multi-Model Fallback**: Automatically tries Mistral-7B-Instruct → Llama-3.2-3B-Instruct → Zephyr-7B-Beta
 
+#### AI Chatbot Assistant
+- **Natural Language Queries**: Ask questions about your health in conversational format
+- **Context-Aware Responses**: Answers based on your actual medical data
+- **Medical Data Integration**: References diagnoses, treatments, medications, and appointments
+- **Smart Suggestions**: Pre-built questions to get started quickly
+- **Real-time Interaction**: Live typing indicators and smooth chat experience
+- **Privacy-Focused**: Only accesses your personal medical records
+
+**Example Questions:**
+- "What are my recent diagnoses?"
+- "Show me my current medications"
+- "When is my next follow-up appointment?"
+- "Who are my healthcare providers?"
+- "What conditions have I been treated for?"
+
 #### Voice-to-Text Features
 - **Voice-to-Record**: Speak naturally about your health - AI extracts doctor, diagnosis, date, medication, and dosage
 - **Voice-to-Doctor**: Add new doctors by speaking their name, specialization, contact info
@@ -232,7 +250,6 @@ LifeTrack uses Hugging Face's Inference API with state-of-the-art open-source mo
 3. AI transcribes and parses your speech automatically
 4. Review the extracted information
 5. Edit if needed and click "Save"
-- **Real-time Analysis**: Get updated insights with a single click
 
 ### How It Works
 
@@ -315,6 +332,7 @@ LifeTrack features a beautiful dual theme system that adapts to your preference:
 - `GET /api/health-insights/<user_id>` - Get AI-powered health insights and recommendations
 - `POST /api/parse-voice-record` - Parse voice input to extract health record data
 - `POST /api/parse-voice-doctor` - Parse voice input to extract doctor information
+- `POST /chatbot/query` - Ask questions about user's medical data (chatbot)
 
 ## 🚀 Local Development
 
@@ -360,10 +378,12 @@ If you encounter any issues or have questions:
 ## 📈 Roadmap
 
 - [x] **AI Health Insights** - Powered by Hugging Face ✅
+- [x] **AI Chatbot Assistant** - Interactive health Q&A based on medical data ✅
 - [x] **Voice-to-Text Entry** - Natural speech input for records and doctors ✅
 - [x] **Full CRUD Operations** - Complete edit/delete functionality ✅
 - [x] **Light/Dark Theme** - Beautiful dual theme system ✅
 - [ ] **iOS app support** - Extend mobile app to iOS platform
+- [ ] **Chatbot conversation history** - Save and review past conversations
 - [ ] **Data export/import** - Backup and restore health records (JSON/CSV)
 - [ ] **Appointment scheduling** - Calendar integration with reminders
 - [ ] **Medication reminders** - Push notifications with AI-powered suggestions
@@ -374,10 +394,6 @@ If you encounter any issues or have questions:
 - [ ] **Medical document OCR** - Auto-extract data from prescription images
 - [ ] **Family account sharing** - Manage health records for dependents
 - [ ] **Doctor appointment booking** - Integration with healthcare providers
-- [ ] PDF report generation
-- [ ] Multi-language support
-- [ ] AI-powered symptom checker
-- [ ] Medical document OCR and auto-extraction
 
 ## ⭐ Acknowledgments
 

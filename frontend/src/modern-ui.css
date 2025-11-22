@@ -117,7 +117,7 @@ textarea {
 
 .navbar-content {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 3fr 1fr;
   align-items: center;
   max-width: 1400px;
   margin: 0 auto;
@@ -888,9 +888,16 @@ textarea.neo-input {
     grid-column: 1;
     justify-content: flex-start;
     gap: 0.3rem;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   
-  .nav-item.nav-logout {
+  .nav-item.nav-links::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .nav-item.nav-logout,
+  .nav-item.nav-actions {
     grid-column: 3;
     justify-content: flex-end;
   }
@@ -901,6 +908,13 @@ textarea.neo-input {
     gap: 0.3rem;
     align-items: center;
     justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .nav-links::-webkit-scrollbar {
+    display: none;
   }
   
   .logo {
@@ -1031,12 +1045,24 @@ textarea.neo-input {
   .nav-links {
     gap: 0.2rem;
     grid-column: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  
+  .nav-links::-webkit-scrollbar {
+    display: none;
   }
   
   .logo {
     font-size: 1rem;
     grid-column: 2;
     text-align: center;
+  }
+  
+  .nav-actions {
+    grid-column: 3;
+    justify-self: end;
+    gap: 0.3rem;
   }
   
   .logout-btn {
@@ -1046,8 +1072,6 @@ textarea.neo-input {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     gap: 0.1rem;
-    grid-column: 3;
-    justify-self: end;
     max-width: 50px;
   }
   

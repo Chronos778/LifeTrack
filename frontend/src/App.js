@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
 import Records from './pages/Records';
 import Treatments from './pages/Treatments';
+import Chatbot from './pages/Chatbot';
 import APITest from './pages/APITest';
 import { ThemeProvider } from './context/ThemeContext';
 import './modern-ui.css';
@@ -17,19 +18,32 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Don't restore user session from storage for security
-    // User will need to login again on page refresh
+    // Restore user session from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
+      }
+    }
     setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
+    console.log('📝 handleLogin called with:', userData);
     setUser(userData);
-    // No storage - keep user data in memory only for security
+    // Store user data in localStorage for persistence
+    localStorage.setItem('user', JSON.stringify(userData));
+    console.log('✅ User saved to localStorage');
   };
 
   const handleLogout = () => {
     setUser(null);
-    // Clear any session data if needed
+    // Clear user data from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   if (loading) {
@@ -88,6 +102,12 @@ function App() {
               path="/treatments" 
               element={
                 user ? <Treatments user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
+              } 
+            />
+            <Route 
+              path="/chatbot" 
+              element={
+                user ? <Chatbot user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />
               } 
             />
             

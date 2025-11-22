@@ -356,6 +356,22 @@ export const apiService = {
       console.error('Error parsing voice doctor:', error);
       throw new Error(error.response?.data?.message || 'Failed to parse voice input');
     }
+  },
+
+  // Chatbot: Query with user's medical data
+  chatbotQuery: async (userId, question) => {
+    try {
+      const response = await api.post('/chatbot/query', {
+        user_id: userId,
+        question: question
+      }, {
+        timeout: 30000  // 30 seconds for AI response
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error with chatbot query:', error);
+      throw new Error(error.response?.data?.message || 'Failed to get chatbot response');
+    }
   }
 };
 
