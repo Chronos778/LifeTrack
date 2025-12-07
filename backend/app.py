@@ -797,45 +797,32 @@ def parse_voice_record():
         # Create prompt for AI to parse the voice input
         doctors_list = "\n".join([f"- Dr. {d['name']} (ID: {d['doctor_id']}, {d['specialization']})" for d in all_doctors])
         
-        parse_prompt = f"""
-You are a medical record parser. Extract structured information from this voice input.
+        parse_prompt = f"""Extract medical information from this text and respond ONLY with a JSON object. Do not write code or explanations.
 
-VOICE INPUT: "{voice_text}"
+Voice input: "{voice_text}"
 
-AVAILABLE DOCTORS IN SYSTEM:
+Available doctors:
 {doctors_list}
 
-TASK: Extract and return ONLY valid JSON in this exact format:
+Return only this JSON structure with extracted values:
 {{
-  "doctor_id": <number or null>,
-  "doctor_name": "<extracted name or null>",
-  "diagnosis": "<main condition/reason for visit>",
-  "date": "<YYYY-MM-DD format or today's date if not mentioned>",
-  "medication": "<ONLY medication name, no dosage/strength>",
-  "dosage": "<ONLY dosage instructions like '500mg twice daily', no medication name>",
-  "follow_up_date": "<YYYY-MM-DD or null>",
-  "confidence": "High|Medium|Low"
+  "doctor_id": null,
+  "doctor_name": null,
+  "diagnosis": "General Consultation",
+  "date": "2025-12-07",
+  "medication": null,
+  "dosage": null,
+  "follow_up_date": null,
+  "confidence": "Medium"
 }}
 
-CRITICAL RULES:
-1. Match doctor_id from the available doctors list if doctor name is mentioned
-2. If doctor not in list, set doctor_id to null but include doctor_name
-3. Extract diagnosis as concisely as possible
-4. Use today's date (2025-11-05) if no date mentioned
-5. Set confidence based on how clear the input is
-6. If medication/dosage not mentioned, use null
-7. IMPORTANT: Keep medication and dosage SEPARATE:
-   - medication field: ONLY the drug name (e.g., "Paracetamol", "Ibuprofen")
-   - dosage field: ONLY the amount and frequency (e.g., "500mg twice daily", "10ml every 6 hours")
-8. Output ONLY the JSON, no other text
-
-Examples:
-Input: "I saw Dr. Smith for fever yesterday, he gave me paracetamol 500mg twice a day"
-Output: {{"doctor_id": 1, "doctor_name": "Smith", "diagnosis": "Fever", "date": "2025-11-04", "medication": "Paracetamol", "dosage": "500mg twice daily", "follow_up_date": null, "confidence": "High"}}
-
-Input: "visited Dr. Williams for diabetes check, prescribed metformin 850 milligrams once daily"
-Output: {{"doctor_id": 2, "doctor_name": "Williams", "diagnosis": "Diabetes check-up", "date": "2025-11-05", "medication": "Metformin", "dosage": "850mg once daily", "follow_up_date": null, "confidence": "High"}}
-"""
+Rules:
+- Extract doctor name from input. Match with available doctors list for doctor_id
+- Extract main medical condition for diagnosis
+- Extract medication name only (no dosage) for medication field
+- Extract dosage/frequency only (no medication name) for dosage field
+- Use YYYY-MM-DD format for dates
+- Respond with ONLY the JSON object, nothing else"""
         
         # Call Hugging Face Router API (OpenAI-compatible)
         headers = {
@@ -865,40 +852,52 @@ Output: {{"doctor_id": 2, "doctor_name": "Williams", "diagnosis": "Diabetes chec
                 continue
         
         if not hf_response or hf_response.status_code != 200:
-            raise Exception("AI parsing failed")
+            error_msg = f"AI API failed with status: {hf_response.status_code if hf_response else 'No response'}"
+            if hf_response:
+                error_msg += f" - {hf_response.text[:200]}"
+            app.logger.error(error_msg)
+            raise Exception(error_msg)
         
         # Parse AI response from Hugging Face (OpenAI format)
         response_data = hf_response.json()
         ai_text = response_data['choices'][0]['message']['content']
+        
+        app.logger.info(f"AI Response: {ai_text[:500]}")
         
         # Extract JSON from response
         import json
         import re
         from datetime import datetime
         
-        # Clean markdown
-        ai_text_cleaned = re.sub(r'```json\s*|\s*```', '', ai_text)
+        # Clean the response - remove markdown, code blocks, explanations
+        ai_text_cleaned = ai_text.strip()
+        ai_text_cleaned = re.sub(r'```(?:json)?\s*', '', ai_text_cleaned)  # Remove code blocks
+        ai_text_cleaned = re.sub(r'```\s*', '', ai_text_cleaned)
         
-        # Find JSON
-        json_match = re.search(r'\{[^{}]*\}', ai_text_cleaned, re.DOTALL)
+        # Try to find JSON object
+        json_match = re.search(r'\{.*?\}', ai_text_cleaned, re.DOTALL)
         
         if json_match:
-            parsed_data = json.loads(json_match.group())
-            
-            # Validate and set defaults
-            if not parsed_data.get('date'):
-                parsed_data['date'] = datetime.now().strftime('%Y-%m-%d')
-            
-            if not parsed_data.get('diagnosis'):
-                parsed_data['diagnosis'] = 'General Consultation'
-            
-            # If doctor_id is null but doctor_name exists, try to find matching doctor
-            if not parsed_data.get('doctor_id') and parsed_data.get('doctor_name'):
-                doctor_name_lower = parsed_data['doctor_name'].lower()
-                for doc in all_doctors:
-                    if doctor_name_lower in doc['name'].lower():
-                        parsed_data['doctor_id'] = doc['doctor_id']
-                        break
+            try:
+                parsed_data = json.loads(json_match.group())
+                
+                # Validate and set defaults
+                if not parsed_data.get('date'):
+                    parsed_data['date'] = datetime.now().strftime('%Y-%m-%d')
+                
+                if not parsed_data.get('diagnosis'):
+                    parsed_data['diagnosis'] = 'General Consultation'
+                
+                # If doctor_id is null but doctor_name exists, try to find matching doctor
+                if not parsed_data.get('doctor_id') and parsed_data.get('doctor_name'):
+                    doctor_name_lower = parsed_data['doctor_name'].lower()
+                    for doc in all_doctors:
+                        if doctor_name_lower in doc['name'].lower():
+                            parsed_data['doctor_id'] = doc['doctor_id']
+                            break
+            except json.JSONDecodeError as je:
+                app.logger.error(f"JSON parsing failed: {je}")
+                raise Exception("AI returned invalid JSON")
             
             return jsonify({
                 'success': True,
@@ -906,17 +905,109 @@ Output: {{"doctor_id": 2, "doctor_name": "Williams", "diagnosis": "Diabetes chec
                 'message': 'Voice input parsed successfully'
             }), 200
         else:
+            app.logger.error(f"No JSON found in AI response: {ai_text}")
             return jsonify({
                 'success': False,
                 'message': 'Could not parse voice input. Please speak more clearly or try again.'
             }), 400
             
     except Exception as e:
-        app.logger.error(f"Error parsing voice record: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': 'Error processing voice input'
-        }), 500
+        app.logger.error(f"AI parsing failed, trying fallback parser: {str(e)}", exc_info=True)
+        
+        # FALLBACK: Use regex-based parsing if AI fails
+        try:
+            import re
+            from datetime import datetime
+            
+            parsed_data = {
+                'doctor_id': None,
+                'doctor_name': None,
+                'diagnosis': None,
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'medication': None,
+                'dosage': None,
+                'follow_up_date': None,
+                'confidence': 'Low'
+            }
+            
+            # Extract doctor name patterns
+            doctor_patterns = [
+                r'(?:visited|saw|met|consulted)\s+(?:Dr\.?|Doctor)\s+([A-Z][a-z]+)',
+                r'(?:Dr\.?|Doctor)\s+([A-Z][a-z]+)',
+            ]
+            for pattern in doctor_patterns:
+                match = re.search(pattern, voice_text, re.IGNORECASE)
+                if match:
+                    parsed_data['doctor_name'] = match.group(1)
+                    # Try to match with existing doctors
+                    for doc in all_doctors:
+                        if match.group(1).lower() in doc['name'].lower():
+                            parsed_data['doctor_id'] = doc['doctor_id']
+                            break
+                    break
+            
+            # Extract diagnosis/condition
+            diagnosis_patterns = [
+                r'for\s+([a-z\s]+?)(?:\s+on|\s+and|\s+he|\s+she|\.|$)',
+                r'diagnosed\s+with\s+([a-z\s]+?)(?:\s+on|\s+and|\.|$)',
+                r'treating\s+([a-z\s]+?)(?:\s+on|\s+and|\.|$)',
+            ]
+            for pattern in diagnosis_patterns:
+                match = re.search(pattern, voice_text, re.IGNORECASE)
+                if match:
+                    parsed_data['diagnosis'] = match.group(1).strip().title()
+                    break
+            
+            # Extract medication and dosage
+            med_patterns = [
+                r'prescribed\s+([a-z]+)\s+(\d+\s*(?:mg|ml|g|mcg)[a-z\s]*)',
+                r'gave\s+me\s+([a-z]+)\s+(\d+\s*(?:mg|ml|g|mcg)[a-z\s]*)',
+                r'([a-z]+)\s+(\d+\s*(?:mg|ml|g|mcg)[a-z\s]*)',
+            ]
+            for pattern in med_patterns:
+                match = re.search(pattern, voice_text, re.IGNORECASE)
+                if match:
+                    parsed_data['medication'] = match.group(1).capitalize()
+                    parsed_data['dosage'] = match.group(2).strip()
+                    break
+            
+            # Extract date
+            date_patterns = [
+                r'on\s+([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?)',
+                r'yesterday',
+                r'today',
+            ]
+            for pattern in date_patterns:
+                match = re.search(pattern, voice_text, re.IGNORECASE)
+                if match:
+                    if 'yesterday' in match.group(0).lower():
+                        from datetime import timedelta
+                        yesterday = datetime.now() - timedelta(days=1)
+                        parsed_data['date'] = yesterday.strftime('%Y-%m-%d')
+                    elif 'today' not in match.group(0).lower():
+                        # Try to parse date (simplified)
+                        parsed_data['date'] = datetime.now().strftime('%Y-%m-%d')
+                    break
+            
+            # Set defaults if nothing extracted
+            if not parsed_data['diagnosis']:
+                parsed_data['diagnosis'] = 'General Consultation'
+            
+            app.logger.info(f"Fallback parser result: {parsed_data}")
+            
+            return jsonify({
+                'success': True,
+                'parsed_data': parsed_data,
+                'message': 'Voice input parsed successfully (fallback mode)',
+                'fallback': True
+            }), 200
+            
+        except Exception as fallback_error:
+            app.logger.error(f"Fallback parser also failed: {str(fallback_error)}")
+            return jsonify({
+                'success': False,
+                'message': f'Error processing voice input: {str(e)}'
+            }), 500
 
 # ============== VOICE-TO-DOCTOR AI PARSING ENDPOINT ==============
 @app.route('/api/parse-voice-doctor', methods=['POST'])
